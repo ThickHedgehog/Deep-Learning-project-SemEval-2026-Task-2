@@ -1,0 +1,158 @@
+# SemEval-2026 Task 2 Configuration
+# Predicting Variation in Emotional Valence and Arousal over Time from Ecological Essays
+
+project:
+  name: "semeval-2026-task2"
+  version: "1.0.0"
+  description: "Temporal emotion prediction from ecological essays"
+
+data:
+  raw_data_path: "data/raw/"
+  processed_data_path: "data/processed/"
+  splits_path: "data/splits/"
+  external_data_path: "data/external/"
+
+  # Data preprocessing
+  max_sequence_length: 512
+  min_sequence_length: 10
+  text_cleaning:
+    remove_html: true
+    remove_urls: true
+    normalize_whitespace: true
+    lowercase: false
+
+  # Train/validation/test splits
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 42
+
+model:
+  # Base model configurations
+  base_models:
+    - "bert-base-uncased"
+    - "roberta-base"
+    - "distilbert-base-uncased"
+    - "sentence-transformers/all-MiniLM-L6-v2"
+
+  # Task-specific parameters
+  num_emotion_dimensions: 2  # valence and arousal
+  output_range: [-1.0, 1.0]  # emotion scale range
+
+  # Architecture parameters
+  hidden_size: 768
+  num_attention_heads: 12
+  dropout_rate: 0.1
+  temporal_window_size: 10  # for temporal modeling
+
+  # Temporal modeling
+  temporal_model_type: "lstm"  # options: lstm, gru, transformer
+  temporal_hidden_size: 256
+  num_temporal_layers: 2
+  bidirectional: true
+
+training:
+  # Basic training parameters
+  batch_size: 16
+  num_epochs: 50
+  learning_rate: 2e-5
+  weight_decay: 0.01
+  warmup_steps: 1000
+  gradient_clip_norm: 1.0
+
+  # Optimization
+  optimizer: "adamw"
+  scheduler: "linear_with_warmup"
+
+  # Loss function
+  loss_function: "mse"  # options: mse, mae, huber, combined
+  valence_weight: 1.0
+  arousal_weight: 1.0
+  temporal_consistency_weight: 0.1
+
+  # Early stopping
+  early_stopping:
+    patience: 10
+    monitor: "val_loss"
+    min_delta: 0.001
+
+  # Validation
+  validation_frequency: 1  # epochs
+  save_best_model: true
+
+  # Mixed precision training
+  use_amp: true
+
+evaluation:
+  metrics:
+    - "mse"
+    - "mae"
+    - "rmse"
+    - "pearson_correlation"
+    - "spearman_correlation"
+    - "r2_score"
+
+  # Temporal evaluation
+  temporal_metrics:
+    - "temporal_consistency"
+    - "trend_accuracy"
+    - "peak_detection"
+
+  # Cross-validation
+  cross_validation:
+    enabled: true
+    folds: 5
+    strategy: "time_series"  # or "stratified"
+
+experiment:
+  # Experiment tracking
+  tracking:
+    use_wandb: true
+    use_mlflow: true
+    project_name: "semeval-2026-task2"
+
+  # Logging
+  log_level: "INFO"
+  log_frequency: 100  # steps
+
+  # Checkpointing
+  save_frequency: 1000  # steps
+  max_checkpoints: 5
+
+  # Results
+  results_dir: "results/"
+  model_save_dir: "results/models/"
+  predictions_dir: "results/predictions/"
+
+ensemble:
+  # Ensemble methods
+  methods:
+    - "average"
+    - "weighted_average"
+    - "stacking"
+    - "voting"
+
+  # Model selection for ensemble
+  selection_criteria: "validation_loss"
+  max_models: 5
+
+  # Stacking parameters
+  stacking:
+    meta_model: "linear_regression"
+    cv_folds: 3
+
+# Hardware configuration
+hardware:
+  device: "auto"  # auto, cpu, cuda, mps
+  num_workers: 4
+  pin_memory: true
+
+  # Multi-GPU settings
+  multi_gpu: false
+  gpu_ids: [0]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false

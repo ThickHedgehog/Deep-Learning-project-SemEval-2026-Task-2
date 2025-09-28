@@ -34,7 +34,7 @@ The official site provides schemas and validation scripts.
 
 ```bash
 # Clone the repository
-git clone [https://github.com/ThickHedgehog/Deep-Learning-project-SemEval-2026-Task-2]
+git clone https://github.com/ThickHedgehog/Deep-Learning-project-SemEval-2026-Task-2
 
 # Install dependencies (example for Python)
 pip install -r requirements.txt

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+env/
+venv/
+.idea/
+.vscode/
+.ipynb_checkpoints/
+
+# Data / models / outputs
+data/*
+!data/.placeholder
+models/
+outputs/
+predictions/
+logs/
+
+# System files
+.DS_Store
+Thumbs.db

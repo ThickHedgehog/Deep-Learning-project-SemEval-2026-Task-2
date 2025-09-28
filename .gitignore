@@ -8,15 +8,30 @@ venv/
 .idea/
 .vscode/
 .ipynb_checkpoints/
+.python-version
+
+# Env
+.env
+.envrc
 
 # Data / models / outputs
 data/*
 !data/.placeholder
+!data/README.md
+!data/*.md
 models/
 outputs/
 predictions/
 logs/
 
+# Experiment trackers / checkpoints
+wandb/
+mlruns/
+checkpoints/
+
 # System files
 .DS_Store
 Thumbs.db
+
+# LFS metadata (на будущее)
+.gitattributes

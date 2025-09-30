@@ -32,6 +32,7 @@ checkpoints/
 # System files
 .DS_Store
 Thumbs.db
+__MACOSX/
 
 # LFS metadata (на будущее)
 .gitattributes

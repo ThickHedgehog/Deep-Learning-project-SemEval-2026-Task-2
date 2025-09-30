@@ -6,8 +6,8 @@
 
 **과제명**: Predicting Variation in Emotional Valence and Arousal over Time from Ecological Essays
 **Название задачи**: Predicting Variation in Emotional Valence and Arousal over Time from Ecological Essays
-**기간**: 4개월 (2025년 1월 - 2025년 4월)
-**Период**: 4 месяца (январь 2025 - апрель 2025)
+**기간**: 4개월 (2025년 1O월 - 2026년 1월)
+**Период**: 4 месяца (октября 2025 - Январь 2025)
 **팀 구성**: 2명
 **Состав команды**: 2 человека
 **목표**: SemEval-2026 Task 2 경연 참가 및 Top 10 진입

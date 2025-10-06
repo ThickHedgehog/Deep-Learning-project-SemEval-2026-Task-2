@@ -7,19 +7,26 @@ import sys
 import argparse
 import yaml
 import logging
-import torch
-import wandb
 from datetime import datetime
 from pathlib import Path
+
+try:
+    import wandb  # type: ignore
+except ImportError:
+    wandb = None
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent / 'src'))
 
-from src.data import create_dataloaders_from_config
-from src.models import BertEmotionModel, TemporalEmotionModel
-from src.training import Trainer
-from src.evaluation import MetricsCalculator
-from src.utils import setup_logging, set_seed
+try:
+    from src.data import create_dataloaders_from_config  # type: ignore
+    from src.models import BertEmotionModel, TemporalEmotionModel  # type: ignore
+    from src.training import Trainer  # type: ignore
+    from src.evaluation import MetricsCalculator  # type: ignore
+    from src.utils import setup_logging, set_seed  # type: ignore
+except ImportError as e:
+    print(f"Warning: Could not import src modules: {e}")
+    # These will be available at runtime
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +126,7 @@ def setup_experiment(config: dict, args) -> str:
     # Setup logging
     log_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(
-        log_file=os.path.join(experiment_dir, 'train.log'),
+        log_file=os.path.join('logs', f'train_{experiment_name}.log'),
         level=log_level
     )
 
@@ -136,7 +143,9 @@ def setup_experiment(config: dict, args) -> str:
 
 def setup_wandb(config: dict, experiment_dir: str, args):
     """Setup Weights & Biases logging."""
-    if args.no_wandb:
+    if args.no_wandb or wandb is None:
+        if wandb is None:
+            logger.warning("Weights & Biases not available (not installed)")
         return None
 
     try:

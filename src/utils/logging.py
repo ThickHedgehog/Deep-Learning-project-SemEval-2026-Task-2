@@ -83,7 +83,7 @@ class ProgressHandler(logging.Handler):
 
 def setup_logging(
     level: str = "INFO",
-    log_dir: Optional[str] = None,
+    log_dir: Optional[str] = "logs",
     log_file: Optional[str] = None,
     use_json: bool = False,
     use_colors: bool = True,

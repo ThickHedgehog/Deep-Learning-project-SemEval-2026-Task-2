@@ -78,9 +78,13 @@ class TextPreprocessor:
     def _download_nltk_data(self):
         """Download required NLTK data."""
         try:
-            nltk.data.find('tokenizers/punkt')
+            nltk.data.find('tokenizers/punkt_tab')
         except LookupError:
-            nltk.download('punkt')
+            try:
+                nltk.download('punkt_tab')
+            except:
+                # Fallback to punkt for older NLTK versions
+                nltk.download('punkt')
 
         try:
             nltk.data.find('corpora/stopwords')
@@ -129,13 +133,20 @@ class TextPreprocessor:
 
         # Tokenize and process words
         if self.remove_stopwords or self.lemmatize:
-            words = word_tokenize(text)
+            try:
+                words = word_tokenize(text)
+            except:
+                # Fallback to simple split if word_tokenize fails
+                words = text.split()
 
             if self.remove_stopwords:
                 words = [word for word in words if word.lower() not in self.stop_words]
 
             if self.lemmatize:
-                words = [self.lemmatizer.lemmatize(word) for word in words]
+                try:
+                    words = [self.lemmatizer.lemmatize(word) for word in words]
+                except:
+                    logger.warning("Lemmatization failed, using original words")
 
             text = ' '.join(words)
 
@@ -156,7 +167,13 @@ class TextPreprocessor:
         # Basic features
         features['length'] = len(text)
         features['word_count'] = len(text.split())
-        features['sentence_count'] = len(sent_tokenize(text))
+        
+        try:
+            features['sentence_count'] = len(sent_tokenize(text))
+        except:
+            # Fallback: count periods, exclamations, and questions as sentence boundaries
+            features['sentence_count'] = max(1, text.count('.') + text.count('!') + text.count('?'))
+        
         features['avg_word_length'] = np.mean([len(word) for word in text.split()]) if text.split() else 0
         features['avg_sentence_length'] = features['word_count'] / features['sentence_count'] if features['sentence_count'] > 0 else 0
 
@@ -175,7 +192,8 @@ class TextPreprocessor:
             blob = TextBlob(text)
             features['polarity'] = blob.sentiment.polarity
             features['subjectivity'] = blob.sentiment.subjectivity
-        except:
+        except Exception as e:
+            logger.warning(f"TextBlob sentiment analysis failed: {e}")
             features['polarity'] = 0.0
             features['subjectivity'] = 0.0
 
@@ -188,8 +206,14 @@ class TextPreprocessor:
                 features['pos_verb_ratio'] = sum(1 for token in doc if token.pos_ == 'VERB') / len(doc) if doc else 0
                 features['pos_adj_ratio'] = sum(1 for token in doc if token.pos_ == 'ADJ') / len(doc) if doc else 0
                 features['pos_adv_ratio'] = sum(1 for token in doc if token.pos_ == 'ADV') / len(doc) if doc else 0
-            except:
-                logger.warning("Error processing text with spaCy")
+            except Exception as e:
+                logger.warning(f"spaCy processing failed: {e}")
+                # Set default values if spaCy fails
+                features['named_entities'] = 0
+                features['pos_noun_ratio'] = 0
+                features['pos_verb_ratio'] = 0
+                features['pos_adj_ratio'] = 0
+                features['pos_adv_ratio'] = 0
 
         return features
 

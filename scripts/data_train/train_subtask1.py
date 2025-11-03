@@ -16,9 +16,31 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Device
+# Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logger.info(f"Using device: {device}")
+
+if torch.cuda.is_available():
+    gpu_name = torch.cuda.get_device_name(0)
+    gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+    logger.info(f"GPU Device: {gpu_name}")
+    logger.info(f"GPU Memory: {gpu_memory:.2f} GB")
+    
+    # Check if this is a very new GPU that might need special handling
+    if 'RTX 50' in gpu_name or 'RTX 60' in gpu_name:
+        logger.warning(f"Detected very new GPU: {gpu_name}")
+        logger.warning("If you encounter CUDA errors, try:")
+        logger.warning("  1. Install PyTorch nightly build")
+        logger.warning("  2. Set TORCH_CUDA_ARCH_LIST environment variable")
+        logger.warning("  3. See GPU_SETUP_INSTRUCTIONS.md for details")
+else:
+    logger.warning("=" * 70)
+    logger.warning("CUDA is NOT available - using CPU!")
+    logger.warning("Training will be VERY slow on CPU.")
+    logger.warning("To use GPU, install PyTorch with CUDA support:")
+    logger.warning("  pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124")
+    logger.warning("See GPU_SETUP_INSTRUCTIONS.md for more details.")
+    logger.warning("=" * 70)
 
 
 # ===== 1. DATA SPLITTING =====

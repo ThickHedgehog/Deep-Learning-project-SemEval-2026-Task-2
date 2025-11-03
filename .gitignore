@@ -5,10 +5,15 @@ __pycache__/
 .venv/
 env/
 venv/
+venv_*/
 .idea/
 .vscode/
 .ipynb_checkpoints/
 .python-version
+
+# Conda environments
+.conda/
+envs/
 
 # Env
 .env
@@ -33,6 +38,7 @@ checkpoints/
 .DS_Store
 Thumbs.db
 __MACOSX/
+pytorch_wheels/
 
-# LFS metadata (на будущее)
+# LFS metadata
 .gitattributes

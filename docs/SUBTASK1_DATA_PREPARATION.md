@@ -78,27 +78,52 @@ This document describes the complete data preparation pipeline for **Subtask 1: 
 
 ### 4. Simple Data Preparation (`simple_data_prep.py`)
 
-A lightweight, dependency-minimal script that:
-- Loads and analyzes the raw dataset
-- Applies basic text cleaning
-- Creates temporal sequences
-- Generates train/val/test splits
-- Saves processed data in multiple formats
-- Generates comprehensive analysis reports
+**Purpose**: Comprehensive feature engineering script that transforms raw data into ML-ready dataset.
+
+**Location**: `scripts/data_preparation/simple_data_prep.py`
+
+**Features Engineered** (33 new features):
+
+1. **Text Features** (9): text_length, word_count, sentence_count, avg_word_length, exclamation_count, question_count, uppercase_ratio, capitalized_words
+2. **Temporal Features** (6): hour, day_of_week, month, is_weekend, hours_since_start, time_gap_hours
+3. **User Statistics** (10): user_text_id_count, user_valence_mean/std, user_arousal_mean/std, user_timestamp_min/max, entry_number, user_days_active, user_entry_frequency
+4. **Rolling Features** (6): valence/arousal rolling_mean/std (window=3), valence/arousal_diff
+5. **Encoded Features** (2): is_words_encoded, collection_phase_encoded
+
+**Text Cleaning**:
+- Apostrophe normalization (I ' ve → I've)
+- Whitespace normalization
+- Punctuation standardization
+
+**Output**: 
+- File: `data/processed/subtask1_processed.csv`
+- Size: 2,764 rows × 41 columns (8 original + 33 engineered)
+- No train/val/test split applied (flexible for custom strategies)
+
+**Design**:
+- Per-user temporal processing
+- Missing value handling (NaN → 0)
+- Chronological order preservation
+- Detailed logging
 
 ## Files Generated
 
-After running the data preparation pipeline:
-
+**Primary Output**:
 ```
 data/processed/
-├── subtask1_train.csv          # Training data (1,865 samples)
-├── subtask1_val.csv            # Validation data (410 samples)  
-├── subtask1_test.csv           # Test data (475 samples)
-├── subtask1_sequences.json     # Temporal sequences (2,236 sequences)
-├── subtask1_metadata.json      # Dataset metadata
-└── subtask1_analysis_report.txt # Comprehensive analysis report
+└── subtask1_processed.csv       # Complete dataset: 2,764 samples × 41 columns
+                                 # (8 original + 33 engineered features)
 ```
+
+**Feature Breakdown**:
+- 8 original columns: user_id, text_id, text, timestamp, collection_phase, is_words, valence, arousal
+- 1 cleaned text: text_cleaned
+- 9 text features: text_length, word_count, sentence_count, etc.
+- 6 temporal features: hour, day_of_week, month, is_weekend, hours_since_start, time_gap_hours
+- 10 user statistics: user_text_id_count, user_valence_mean/std, user_arousal_mean/std, etc.
+- 5 user temporal: entry_number, hours_since_start, user_days_active, user_entry_frequency, time_gap_hours
+- 6 rolling statistics: valence/arousal rolling_mean/std, valence/arousal_diff
+- 2 encoded categorical: is_words_encoded, collection_phase_encoded
 
 ## Key Insights from Analysis
 
@@ -121,46 +146,18 @@ data/processed/
 ## Usage Instructions
 
 ### Quick Start
+Run the data preparation script:
 ```bash
-# Run complete data preparation
-python simple_data_prep.py
-
-# Analyze the prepared data
-python example_usage.py
+python scripts/data_preparation/simple_data_prep.py
 ```
 
-### Advanced Usage with PyTorch
-```python
-from prepare_subtask1_data import Subtask1DataPreparator
+Output: `data/processed/subtask1_processed.csv` (2,764 samples × 41 columns)
 
-# Initialize preparator
-preparator = Subtask1DataPreparator(
-    sequence_length=5,
-    min_sequences_per_user=3
-)
-
-# Run complete pipeline
-results = preparator.prepare_subtask1_data()
-
-# Access datasets and dataloaders
-train_loader = results["dataloaders"]["train"]
-val_loader = results["dataloaders"]["val"]
-```
-
-### Loading Processed Data
-```python
-import pandas as pd
-import json
-
-# Load CSV data
-train_df = pd.read_csv("data/processed/subtask1_train.csv")
-val_df = pd.read_csv("data/processed/subtask1_val.csv")
-test_df = pd.read_csv("data/processed/subtask1_test.csv")
-
-# Load sequences
-with open("data/processed/subtask1_sequences.json", 'r') as f:
-    sequences = json.load(f)
-```
+### Data Splitting Options
+After loading the processed CSV with pandas, you can split the data using:
+- **Random split**: Simple sklearn train_test_split (not recommended for temporal data)
+- **Temporal split**: Chronological split maintaining time order (recommended)
+- **User-wise temporal split**: Per-user chronological split (best for seen/unseen user evaluation)
 
 ## Modeling Recommendations
 
@@ -208,10 +205,33 @@ with open("data/processed/subtask1_sequences.json", 'r') as f:
 
 ## Conclusion
 
-The data preparation pipeline provides a robust foundation for Subtask 1 modeling. The processed data includes:
-- Clean, feature-rich temporal sequences
-- Proper train/val/test splits maintaining temporal order
-- Comprehensive metadata and analysis
-- Multiple format options for different use cases
+The data preparation pipeline provides a robust foundation for Subtask 1 modeling. The `simple_data_prep.py` script generates a comprehensive processed dataset with:
 
-The pipeline is designed to handle the unique challenges of longitudinal affect assessment while providing flexibility for different modeling approaches.
+**Key Outputs**:
+- **Single unified dataset**: 2,764 samples × 41 columns
+- **Rich feature set**: 33 engineered features covering text, temporal, user, and sequential aspects
+- **Clean data**: Advanced text cleaning with apostrophe normalization and whitespace handling
+- **Temporal preservation**: Chronological ordering maintained for proper sequence modeling
+- **Flexible workflow**: No pre-applied splits, allowing custom train/val/test strategies
+
+**Feature Categories**:
+1. **Text Features** (9): Character/word counts, sentence structure, punctuation patterns
+2. **Temporal Features** (6): Time-based patterns (hour, day, month, weekend, gaps)
+3. **User Features** (10): User-level statistics and activity patterns
+4. **Rolling Features** (6): Sequential patterns with rolling windows
+5. **Encoded Features** (2): Categorical variables converted to numeric
+
+**Advantages**:
+- **Comprehensive**: All necessary features for emotion prediction
+- **Production-ready**: Proper handling of edge cases and missing values
+- **Well-documented**: Detailed logging and clear feature naming
+- **Flexible**: Supports multiple modeling approaches (BERT+LSTM, user embeddings, etc.)
+- **Lightweight**: Minimal dependencies (pandas, numpy, re)
+
+**Next Steps**:
+1. Apply appropriate train/val/test splitting strategy
+2. Implement PyTorch Dataset class for efficient loading
+3. Build model architecture (BERT encoder + LSTM temporal modeling)
+4. Train and evaluate on both seen and unseen users
+
+The pipeline is designed to handle the unique challenges of longitudinal affect assessment while providing maximum flexibility for different modeling approaches and evaluation strategies.

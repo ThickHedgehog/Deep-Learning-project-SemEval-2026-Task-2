@@ -1,32 +1,8 @@
-# For GPU support :
-# conda install pytorch torchvision pytorch-cuda=12.4 -c pytorch -c nvidia
-torch>=2.5.1  
-torchvision>=0.20.1
-
-# Transformers for BERT :
-transformers>=4.57.0
-tokenizers>=0.22.0
-safetensors>=0.6.0
-
-# Data Processing & Analysis
-pandas>=2.3.0
-numpy>=2.0.0
-scikit-learn>=1.7.0
-scipy>=1.16.0
-
-# Utilities
-tqdm>=4.67.0
-pyyaml>=6.0.0
-regex>=2025.10.0
-
-# Hugging Face Hub
-huggingface-hub>=0.36.0
-
-# HTTP & Networking
-requests>=2.32.0
-urllib3>=2.5.0
-certifi>=2025.10.0
-
-# System Dependencies
-pillow>=11.1.0
-fsspec>=2025.10.0
+torch>=2.0.0
+transformers>=4.30.0
+pandas>=1.5.0
+numpy>=1.23.0
+scikit-learn>=1.2.0
+scipy>=1.10.0
+tqdm>=4.65.0
+wandb>=0.15.0

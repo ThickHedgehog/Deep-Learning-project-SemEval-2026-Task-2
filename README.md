@@ -22,6 +22,19 @@
 
 ---
 
+## 📚 Documentation
+
+**Start Here**:
+- **[QUICKSTART.md](QUICKSTART.md)** ⭐ - 5-minute setup guide (recommended for first-time users)
+- **[EXECUTION_CHECKLIST.md](EXECUTION_CHECKLIST.md)** ✅ - Complete step-by-step checklist with verification steps
+
+**Additional Resources**:
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status and completed tasks
+- **[VERSION_HISTORY.md](VERSION_HISTORY.md)** - Development history and performance comparison
+- **[validate_setup.py](validate_setup.py)** - Pre-flight validation script
+
+---
+
 ## 🚀 Quick Start - Google Colab (Recommended)
 
 ### Step 1: Open Google Colab

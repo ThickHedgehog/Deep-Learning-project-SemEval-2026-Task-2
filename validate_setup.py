@@ -108,7 +108,7 @@ def validate_setup():
             print(f"   ✅ Rows: {len(df):,}")
             print(f"   ✅ Columns: {', '.join(df.columns.tolist())}")
 
-            required_cols = ['user_id', 'item_id', 'timestamp', 'text', 'valence', 'arousal']
+            required_cols = ['user_id', 'text_id', 'timestamp', 'text', 'valence', 'arousal']
             missing_cols = [col for col in required_cols if col not in df.columns]
             if missing_cols:
                 print(f"   ❌ Missing columns: {', '.join(missing_cols)}")

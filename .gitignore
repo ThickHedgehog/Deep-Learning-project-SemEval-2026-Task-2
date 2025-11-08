@@ -51,6 +51,8 @@ checkpoints/
 Thumbs.db
 __MACOSX/
 pytorch_wheels/
+nul
+*.lnk
 
 # LFS metadata
 .gitattributes

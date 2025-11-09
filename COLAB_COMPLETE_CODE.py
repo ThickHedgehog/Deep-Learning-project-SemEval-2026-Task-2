@@ -730,6 +730,9 @@ artifact = wandb.Artifact('final-model-v3', type='model')
 artifact.add_file('final_model_best.pt')
 wandb.log_artifact(artifact)
 
+# Save wandb URL before finishing
+wandb_url = f'https://wandb.ai/{wandb.run.entity}/{wandb.run.project}/runs/{wandb.run.id}'
+
 # Finish wandb run
 wandb.finish()
 
@@ -738,4 +741,4 @@ print('\n=== DOWNLOADING MODEL ===')
 files.download('final_model_best.pt')
 print('✓ Download complete!')
 print('\n✓ Check your wandb dashboard for training visualization!')
-print(f'   Visit: https://wandb.ai/{wandb.run.entity}/{wandb.run.project}/runs/{wandb.run.id}')
+print(f'   Visit: {wandb_url}')

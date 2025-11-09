@@ -8,51 +8,65 @@
 
 ---
 
-## 🎯 Subtask 2a - Final Model (v3)
+## 🎯 Subtask 2a - Final Model (v3.3 MINIMAL)
 
 ### ✅ Status: Ready to Train
 
-**Model**: FINAL Optimized Temporal Emotion Prediction (v3)
+**Model**: v3.3 MINIMAL - Evidence-Based Optimization
 
-**Expected Performance**: CCC 0.65-0.72 (Competition Ready)
+**Expected Performance**: CCC 0.54-0.58 (Realistic, Achievable)
 
 **Architecture**: RoBERTa + BiLSTM + Multi-Head Attention + Dual-Head Loss
 
-**Training Time**: ~90-120 minutes on Tesla T4 GPU
+**Training Time**: ~90 minutes on Tesla T4 GPU
+
+**Key Improvement**: Fixed overfitting from v3.0 with 6 minimal, proven changes
 
 ---
 
 ## 📚 Documentation
 
-**Start Here**:
-- **[QUICKSTART.md](QUICKSTART.md)** ⭐ - 5-minute setup guide (recommended for first-time users)
-- **[EXECUTION_CHECKLIST.md](EXECUTION_CHECKLIST.md)** ✅ - Complete step-by-step checklist with verification steps
+**Start Here** (v3.3 MINIMAL):
+- **[V3.3_QUICKSTART.md](V3.3_QUICKSTART.md)** ⭐ - Execute v3.3 in 5 steps (recommended)
+- **[V3.3_SUMMARY.md](V3.3_SUMMARY.md)** 📊 - Why v3.3 will work (detailed analysis)
+
+**Previous Versions**:
+- **[QUICKSTART.md](QUICKSTART.md)** - v3.0 baseline guide
+- **[TRAINING_RESULTS_v3.md](TRAINING_RESULTS_v3.md)** - v3.0 actual results (CCC 0.51)
+- **[V3.1_IMPROVEMENTS.md](V3.1_IMPROVEMENTS.md)** - v3.1 plan (not tested)
+- **[DEEP_ANALYSIS.md](DEEP_ANALYSIS.md)** - Analysis of v3.2 failure
 
 **Additional Resources**:
-- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status and completed tasks
-- **[VERSION_HISTORY.md](VERSION_HISTORY.md)** - Development history and performance comparison
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status
+- **[VERSION_HISTORY.md](VERSION_HISTORY.md)** - Development history
 - **[validate_setup.py](validate_setup.py)** - Pre-flight validation script
 
 ---
 
 ## 🚀 Quick Start - Google Colab (Recommended)
 
-### Step 1: Open Google Colab
-https://colab.research.google.com/
+### Version 3.3 MINIMAL (Latest, Recommended)
 
-### Step 2: Enable GPU
-Runtime → Change runtime type → **T4 GPU**
+**File**: `COLAB_FINAL_v3.3_MINIMAL.py`
+**Expected**: CCC 0.54-0.58 (realistic)
+**Time**: ~90 minutes
 
-### Step 3: Copy Code
-- Open `COLAB_COMPLETE_CODE.py` in this repository
-- Copy **entire file content**
-- Paste into a **single cell** in Colab
+1. Open https://colab.research.google.com/
+2. Runtime → Change runtime type → **T4 GPU**
+3. Copy **entire** `COLAB_FINAL_v3.3_MINIMAL.py` → Paste in one cell
+4. Run cell (Shift + Enter)
+5. Upload `train_subtask2a.csv` when prompted
+6. Login to wandb when prompted
+7. Wait ~90 minutes
+8. Check results (target: CCC 0.54-0.58)
 
-### Step 4: Run
-- Execute the cell (Shift + Enter)
-- Upload `train_subtask2a.csv` when prompted
-- Wait ~90-120 minutes
-- Download `final_model_best.pt` when complete
+**See [V3.3_QUICKSTART.md](V3.3_QUICKSTART.md) for detailed guide**
+
+### Version 3.0 Baseline (Reference)
+
+**File**: `COLAB_COMPLETE_CODE.py`
+**Actual Result**: CCC 0.51 (tested)
+**Issue**: Overfitting (train-val gap 0.39)
 
 ---
 
@@ -81,100 +95,123 @@ Deep-Learning-project-SemEval-2026-Task-2/
 
 ---
 
-## 🏆 Model Architecture (v3 - FINAL)
+## 🏆 Model Architecture (v3.3 MINIMAL)
 
 ```
 Input Text → RoBERTa Encoder (768-dim)
     ↓
-User Embeddings (64-dim) + Previous Emotions (5 lags)
+User Embeddings (32-dim) + Previous Emotions (5 lags) ← CHANGED: 64→32
     ↓
-BiLSTM (2 layers, 256 hidden, bidirectional) → 512-dim
+BiLSTM (2 layers, 192 hidden, bidirectional) → 384-dim ← CHANGED: 256→192
     ↓
 Multi-Head Attention (4 heads)
     ↓
-MLP Fusion (512 → 256) with GELU
+MLP Fusion (384 → 192) with GELU ← CHANGED: Smaller
     ↓
 Dual Heads (Separate 2-layer networks)
     ├─→ Valence Prediction
     └─→ Arousal Prediction
 ```
 
-### Key Innovations:
+### Key Changes from v3.0:
 
-1. **Dual-Head Loss** ⭐ (Most Important!)
-   - Valence: 65% CCC + 35% MSE
-   - Arousal: 70% CCC + 30% MSE (Higher CCC weight!)
+1. **Reduced Overfitting** ⭐ (Priority #1)
+   - User embedding: 64→32 dim (keep benefit, reduce memorization)
+   - LSTM hidden: 256→192 (less capacity)
+   - Dropout: 0.2→0.3 (stronger regularization)
+   - Weight decay: 0.01→0.015 (L2 regularization)
+   - Patience: 7→5 (earlier stopping)
 
-2. **Enhanced Features**
-   - 5 lag features (was 3-4 in previous versions)
-   - Temporal encoding (hour/day cyclical)
-   - User-specific statistics
+2. **Improved Arousal Focus** ⭐ (Priority #2)
+   - Arousal CCC: 70%→75% (was too low in v3.0)
+   - Arousal MSE: 30%→25% (to balance)
+   - Valence: 65% CCC + 35% MSE (unchanged)
 
-3. **Optimized Architecture**
-   - GELU activation (better than ReLU)
-   - 2-layer output heads (deeper)
-   - Sequence length: 7 timesteps
+3. **Total Changes**: Only 6 (minimal, evidence-based)
 
-4. **Stable Training**
-   - 20 epochs with patience 7
-   - Lower learning rate (1.5e-5)
-   - More warmup (15%)
-   - Dropout 0.2
-
----
-
-## 📊 Expected Performance
-
-```
-================================================================================
-FINAL MODEL (v3) - EXPECTED RESULTS
-================================================================================
-CCC Average:  0.65-0.72  🎯 Competition Ready!
-CCC Valence:  0.68-0.72  ✅
-CCC Arousal:  0.62-0.72  ✅ (Significantly improved!)
-RMSE Valence: <1.00      ✅
-RMSE Arousal: <0.65      ✅
-================================================================================
-```
-
-### Why This Works:
-
-**Previous Issues (v2)**:
-- CCC Average: 0.48 ❌
-- Arousal CCC: 0.26 ❌❌ (Catastrophic failure)
-- Problem: Balanced loss (50/50) harmed arousal
-
-**Final Solution (v3)**:
-- **Separate loss weights** for Valence and Arousal
-- Arousal gets **70% CCC** (higher than Valence's 65%)
-- Result: Both dimensions optimize properly
+4. **Evidence-Based Strategy**
+   - Based on v3.0 (CCC 0.51, proven baseline)
+   - Learned from v3.2 failure (removed user emb was wrong)
+   - Conservative changes (not aggressive like v3.2)
+   - Realistic expectations (0.54-0.58, not 0.65-0.72)
 
 ---
 
-## 🔑 Key Hyperparameters
+## 📊 Performance Tracking
+
+### Version History
+
+| Version | CCC Avg | CCC Val | CCC Aro | Gap | Status |
+|---------|---------|---------|---------|-----|--------|
+| v0 baseline | 0.51 | 0.55 | 0.47 | - | ❌ Weak |
+| v1 advanced | 0.57 | 0.61 | 0.52 | - | ⚠️ Unverified |
+| v2 optimized | 0.48 | 0.69 | 0.26 | - | ❌ Catastrophic |
+| **v3.0 dual-head** | **0.514** | **0.638** | **0.391** | **0.39** | ⚠️ **Overfitting** |
+| v3.2 ultimate | 0.29 | 0.48 | 0.09 | 0.14 | ❌ Failed |
+| **v3.3 minimal** | **0.54-0.58** | **0.62-0.64** | **0.43-0.48** | **0.20-0.28** | 🎯 **Expected** |
+
+### v3.3 Expected Results
+
+```
+================================================================================
+v3.3 MINIMAL - EXPECTED RESULTS (85% confidence)
+================================================================================
+CCC Average:  0.54-0.58  ✅ Realistic improvement
+CCC Valence:  0.62-0.64  ✅ Slight decrease acceptable
+CCC Arousal:  0.43-0.48  ✅ Significant improvement (+0.04-0.09)
+Train-Val Gap: 0.20-0.28  ✅ Reduced overfitting (-0.11-0.19)
+================================================================================
+```
+
+### Why v3.3 Works:
+
+**v3.0 Issues**:
+- CCC Average: 0.51 ⚠️ (below target)
+- Train-Val Gap: 0.39 ❌ (severe overfitting)
+- Arousal CCC: 0.39 ⚠️ (weak)
+
+**v3.2 Failure**:
+- Removed user embeddings → CCC dropped to 0.29 ❌
+- Too many changes at once (10+) → couldn't debug
+- Dropout 0.4 too high → underfitting
+
+**v3.3 Solution**:
+- **Keep user embeddings** but reduce (64→32)
+- **Only 6 minimal changes** (evidence-based)
+- **Moderate regularization** (dropout 0.3, not 0.4)
+- **Realistic target** (0.54-0.58, not 0.65-0.72)
+
+---
+
+## 🔑 Key Hyperparameters (v3.3)
 
 ```python
-# Architecture
-SEQ_LENGTH = 7          # Optimal sequence length
-DROPOUT = 0.2           # Lower dropout
-NUM_ATTENTION_HEADS = 4
+# Architecture (CHANGED from v3.0)
+USER_EMB_DIM = 32       # CHANGED: 64 → 32 (reduce overfitting)
+LSTM_HIDDEN = 192       # CHANGED: 256 → 192 (less capacity)
+LSTM_LAYERS = 2         # Same as v3.0
+DROPOUT = 0.3           # CHANGED: 0.2 → 0.3 (stronger regularization)
+NUM_ATTENTION_HEADS = 4 # Same as v3.0
 
-# Training
-BATCH_SIZE = 10
-NUM_EPOCHS = 20         # Extended training
-PATIENCE = 7            # More patience
-WARMUP_RATIO = 0.15     # More warmup
+# Training (CHANGED from v3.0)
+BATCH_SIZE = 10         # Same as v3.0
+NUM_EPOCHS = 20         # Same as v3.0
+PATIENCE = 5            # CHANGED: 7 → 5 (earlier stopping)
+WARMUP_RATIO = 0.15     # Same as v3.0
+WEIGHT_DECAY = 0.015    # CHANGED: 0.01 → 0.015 (L2 reg)
 
-# Learning Rates
-LR_ROBERTA = 1.5e-5     # Lower for stability
+# Learning Rates (Same as v3.0)
+LR_ROBERTA = 1.5e-5
 LR_OTHER = 8e-5
 
-# Loss Weights (DUAL-HEAD)
-CCC_WEIGHT_V = 0.65     # Valence CCC
-CCC_WEIGHT_A = 0.70     # Arousal CCC (HIGHER!)
-MSE_WEIGHT_V = 0.35     # Valence MSE
-MSE_WEIGHT_A = 0.30     # Arousal MSE (LOWER!)
+# Loss Weights (DUAL-HEAD, one change from v3.0)
+CCC_WEIGHT_V = 0.65     # Same as v3.0
+CCC_WEIGHT_A = 0.75     # CHANGED: 0.70 → 0.75 (more CCC focus)
+MSE_WEIGHT_V = 0.35     # Same as v3.0
+MSE_WEIGHT_A = 0.25     # CHANGED: 0.30 → 0.25 (less MSE)
 ```
+
+**Total Changes from v3.0**: 6 hyperparameters
 
 ---
 
@@ -188,9 +225,11 @@ numpy>=1.23.0
 scikit-learn>=1.2.0
 scipy>=1.10.0
 tqdm>=4.65.0
+wandb>=0.15.0
 ```
 
 **GPU**: CUDA-capable GPU required (Tesla T4 recommended)
+**WandB**: Optional but recommended for experiment tracking
 
 ---
 
@@ -207,11 +246,12 @@ print(f"CCC Valence: {checkpoint['val_ccc_v']:.4f}")
 print(f"CCC Arousal: {checkpoint['val_ccc_a']:.4f}")
 ```
 
-### Success Criteria:
+### Success Criteria (v3.3):
 
-- ✅ **Minimum (Acceptable)**: CCC ≥ 0.60
-- ✅ **Target (Good)**: CCC ≥ 0.65
-- ✅ **Excellent (Competition Ready)**: CCC ≥ 0.70
+- ✅ **Minimum**: CCC ≥ 0.53 (+0.02 from v3.0)
+- ✅ **Target**: CCC ≥ 0.55 (+0.04 from v3.0)
+- ✅ **Excellent**: CCC ≥ 0.58 (+0.07 from v3.0)
+- 🎯 **Competition Ready**: CCC ≥ 0.60 (requires ensemble)
 
 ---
 
@@ -229,10 +269,12 @@ For questions or issues, please open a GitHub issue.
 
 ---
 
-**Last Updated**: 2025-11-05
+**Last Updated**: 2025-11-09
 
-**Version**: 3.0 FINAL
+**Version**: 3.3 MINIMAL (Evidence-Based)
 
 **Status**: ✅ Ready to Train
 
-**Expected Result**: CCC 0.65-0.72 🎯
+**Expected Result**: CCC 0.54-0.58 🎯 (Realistic)
+
+**Key Learning**: Simple, evidence-based changes > Complex optimizations

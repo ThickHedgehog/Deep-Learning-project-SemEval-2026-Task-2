@@ -531,8 +531,8 @@ def train_epoch(model, loader, optimizer, scheduler, max_grad_norm,
         all_arousal_true.extend(arousal_true.detach().cpu().numpy())
 
     avg_loss = total_loss / len(loader)
-    train_ccc_v = pearsonr(all_valence_true, all_valence_pred)[0]
-    train_ccc_a = pearsonr(all_arousal_true, all_arousal_pred)[0]
+    train_ccc_v = float(pearsonr(all_valence_true, all_valence_pred)[0])
+    train_ccc_a = float(pearsonr(all_arousal_true, all_arousal_pred)[0])
     train_ccc = (train_ccc_v + train_ccc_a) / 2
 
     return avg_loss, train_ccc, train_ccc_v, train_ccc_a
@@ -571,12 +571,12 @@ def validate(model, loader, ccc_weight_v, ccc_weight_a, mse_weight_v, mse_weight
             all_arousal_true.extend(arousal_true.cpu().numpy())
 
     avg_loss = total_loss / len(loader)
-    val_ccc_v = pearsonr(all_valence_true, all_valence_pred)[0]
-    val_ccc_a = pearsonr(all_arousal_true, all_arousal_pred)[0]
+    val_ccc_v = float(pearsonr(all_valence_true, all_valence_pred)[0])
+    val_ccc_a = float(pearsonr(all_arousal_true, all_arousal_pred)[0])
     val_ccc = (val_ccc_v + val_ccc_a) / 2
 
-    val_rmse_v = np.sqrt(np.mean((np.array(all_valence_true) - np.array(all_valence_pred)) ** 2))
-    val_rmse_a = np.sqrt(np.mean((np.array(all_arousal_true) - np.array(all_arousal_pred)) ** 2))
+    val_rmse_v = float(np.sqrt(np.mean((np.array(all_valence_true) - np.array(all_valence_pred)) ** 2)))
+    val_rmse_a = float(np.sqrt(np.mean((np.array(all_arousal_true) - np.array(all_arousal_pred)) ** 2)))
 
     return avg_loss, val_ccc, val_ccc_v, val_ccc_a, val_rmse_v, val_rmse_a
 

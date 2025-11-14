@@ -21,30 +21,29 @@
 
 **Architecture**: RoBERTa + BiLSTM + Multi-Head Attention + Dual-Head Loss
 
-**Next Steps**: See [FINAL_COMPREHENSIVE_ANALYSIS.md](FINAL_COMPREHENSIVE_ANALYSIS.md) for recommendations
+**Next Steps**: See [docs/subtask2a/FINAL_COMPREHENSIVE_ANALYSIS.md](docs/subtask2a/FINAL_COMPREHENSIVE_ANALYSIS.md) for recommendations
 
 ---
 
 ## 📚 Documentation
 
 **🎯 RECOMMENDED START**:
-- **[ENSEMBLE_GUIDE.md](ENSEMBLE_GUIDE.md)** ⭐⭐⭐ - **COMPLETE ENSEMBLE GUIDE** - Start here!
-- **[FINAL_SUMMARY.md](FINAL_SUMMARY.md)** 📝 - Korean summary - 한글 최종 요약
+- **[docs/subtask2a/ENSEMBLE_GUIDE.md](docs/subtask2a/ENSEMBLE_GUIDE.md)** ⭐⭐⭐ - **COMPLETE ENSEMBLE GUIDE** - Start here!
+- **[docs/subtask2a/FINAL_SUMMARY.md](docs/subtask2a/FINAL_SUMMARY.md)** 📝 - Korean summary - 한글 최종 요약
 
 **📊 Analysis & Results**:
-- **[FINAL_COMPREHENSIVE_ANALYSIS.md](FINAL_COMPREHENSIVE_ANALYSIS.md)** ⭐⭐⭐ - Complete analysis & recommendations
-- **[V3.3_ACTUAL_RESULTS.md](V3.3_ACTUAL_RESULTS.md)** 📊 - v3.3 training results & failure analysis
-- **[DEEP_ANALYSIS.md](DEEP_ANALYSIS.md)** 🔬 - Why v3.2 failed catastrophically
+- **[docs/subtask2a/FINAL_COMPREHENSIVE_ANALYSIS.md](docs/subtask2a/FINAL_COMPREHENSIVE_ANALYSIS.md)** ⭐⭐⭐ - Complete analysis & recommendations
+- **[docs/subtask2a/V3.3_ACTUAL_RESULTS.md](docs/subtask2a/V3.3_ACTUAL_RESULTS.md)** 📊 - v3.3 training results & failure analysis
+- **[docs/subtask2a/DEEP_ANALYSIS.md](docs/subtask2a/DEEP_ANALYSIS.md)** 🔬 - Why v3.2 failed catastrophically
 
 **📖 Training Guides**:
-- **[QUICKSTART.md](QUICKSTART.md)** - v3.0 single model guide
-- **[V3.3_QUICKSTART.md](V3.3_QUICKSTART.md)** - v3.3 guide (not recommended)
-- **[TRAINING_RESULTS_v3.md](TRAINING_RESULTS_v3.md)** - v3.0 results (CCC 0.514)
+- **[docs/subtask2a/QUICKSTART.md](docs/subtask2a/QUICKSTART.md)** - v3.0 single model guide
+- **[docs/subtask2a/TRAINING_RESULTS_v3.md](docs/subtask2a/TRAINING_RESULTS_v3.md)** - v3.0 results (CCC 0.514)
 
 **Additional Resources**:
-- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status
-- **[VERSION_HISTORY.md](VERSION_HISTORY.md)** - Development history
-- **[validate_setup.py](validate_setup.py)** - Pre-flight validation script
+- **[docs/subtask2a/PROJECT_STATUS.md](docs/subtask2a/PROJECT_STATUS.md)** - Current project status
+- **[docs/subtask2a/VERSION_HISTORY.md](docs/subtask2a/VERSION_HISTORY.md)** - Development history
+- **[archive/](archive/)** - Trial-and-error versions (v3.1, v3.2, v3.3)
 
 ---
 
@@ -52,11 +51,14 @@
 
 ### ⭐⭐⭐ HIGHLY RECOMMENDED: v3.0 Ensemble (BEST Strategy)
 
-**Files**: `ENSEMBLE_v3.0_COMPLETE.py` + `ENSEMBLE_PREDICTION.py`
+**Files**: [scripts/colab/subtask2a/](scripts/colab/subtask2a/)
+- `ENSEMBLE_v3.0_COMPLETE.py` - Training script
+- `ENSEMBLE_PREDICTION.py` - Ensemble prediction
+
 **Expected Result**: CCC 0.530-0.550 ✅ **HIGHEST CONFIDENCE (85%)**
 **Time**: ~3 hours (3 models × 90min)
 
-**Complete Guide**: **[ENSEMBLE_GUIDE.md](ENSEMBLE_GUIDE.md)** 📖
+**Complete Guide**: **[docs/subtask2a/ENSEMBLE_GUIDE.md](docs/subtask2a/ENSEMBLE_GUIDE.md)** 📖
 
 **Quick Steps**:
 1. Train seed=123: Change `RANDOM_SEED=123` in ENSEMBLE_v3.0_COMPLETE.py → Run (~90min)
@@ -74,7 +76,7 @@
 
 ### ⭐ Alternative: v3.0 Single Model
 
-**File**: `COLAB_COMPLETE_CODE.py`
+**File**: [scripts/colab/subtask2a/COLAB_COMPLETE_CODE.py](scripts/colab/subtask2a/COLAB_COMPLETE_CODE.py)
 **Actual Result**: CCC 0.5144 ✅ **BEST SINGLE MODEL**
 **Issue**: Overfitting (train-val gap 0.39)
 
@@ -86,21 +88,20 @@
 5. Upload `train_subtask2a.csv` when prompted
 6. Wait ~90 minutes
 
-**See [QUICKSTART.md](QUICKSTART.md) for detailed guide**
+**See [docs/subtask2a/QUICKSTART.md](docs/subtask2a/QUICKSTART.md) for detailed guide**
 
 **Use Case**: Quick testing, baseline comparison
 
 ---
 
-### ⚠️ v3.3 MINIMAL (Tested, Below Target)
+### ⚠️ Old Versions (Archived)
 
-**File**: `COLAB_FINAL_v3.3_MINIMAL.py`
-**Actual Result**: CCC 0.5053 ❌ Below v3.0
-**Why Failed**: Arousal CCC 75% backfired, user emb 32 too small
+**Location**: [archive/](archive/)
+- v3.1, v3.2 (failed), v3.3 (below target)
 
 **NOT RECOMMENDED** - Use v3.0 Ensemble instead
 
-**See [V3.3_ACTUAL_RESULTS.md](V3.3_ACTUAL_RESULTS.md) for failure analysis**
+**See [docs/subtask2a/V3.3_ACTUAL_RESULTS.md](docs/subtask2a/V3.3_ACTUAL_RESULTS.md) for failure analysis**
 
 ---
 
@@ -109,7 +110,25 @@
 ```
 Deep-Learning-project-SemEval-2026-Task-2/
 ├── README.md                                   # This file
-├── COLAB_COMPLETE_CODE.py                      # ⭐ COPY THIS TO COLAB
+├── requirements.txt                            # Python dependencies
+│
+├── docs/
+│   └── subtask2a/                              # ⭐ All documentation
+│       ├── ENSEMBLE_GUIDE.md                   # ⭐⭐⭐ START HERE
+│       ├── FINAL_COMPREHENSIVE_ANALYSIS.md     # Complete analysis
+│       ├── FINAL_SUMMARY.md                    # Korean summary
+│       └── ... (10+ docs)
+│
+├── scripts/
+│   ├── colab/subtask2a/                        # ⭐ Google Colab scripts
+│   │   ├── ENSEMBLE_v3.0_COMPLETE.py           # ⭐ Training script
+│   │   ├── ENSEMBLE_PREDICTION.py              # ⭐ Ensemble prediction
+│   │   ├── COLAB_COMPLETE_CODE.py              # v3.0 baseline
+│   │   └── validate_setup.py                   # Validation script
+│   │
+│   ├── data_analysis/subtask2a/                # Analysis scripts
+│   ├── data_preparation/subtask2a/             # Feature extraction
+│   └── data_train/subtask2a/                   # Local training
 │
 ├── data/
 │   ├── raw/
@@ -117,14 +136,15 @@ Deep-Learning-project-SemEval-2026-Task-2/
 │   └── processed/
 │       └── subtask2a_features.csv              # Auto-generated
 │
-├── scripts/
-│   ├── data_preparation/subtask2a/
-│   │   └── prepare_features_subtask2a.py       # Feature extraction
-│   └── data_train/subtask2a/
-│       └── train_final_subtask2a.py            # ⭐ Final training script (local)
+├── models/                                      # Trained models
+│   ├── v3.0_seed42_best.pt                     # ✅ CCC 0.5144
+│   └── ultimate_model_v3.2.pt                  # (failed experiment)
 │
-└── models/                                      # Trained models
-    └── final_model_best.pt                      # Will be created after training
+└── archive/                                     # Trial-and-error versions
+    ├── COLAB_OPTIMIZED_v3.1.py                 # v3.1 (not tested)
+    ├── COLAB_FINAL_PERFECT_v3.2.py             # v3.2 (failed)
+    ├── COLAB_FINAL_v3.3_MINIMAL.py             # v3.3 (below target)
+    └── ... (version docs)
 ```
 
 ---
@@ -315,14 +335,14 @@ For questions or issues, please open a GitHub issue.
 **Status**: ✅ **COMPLETE ENSEMBLE SOLUTION READY**
 
 **🎯 RECOMMENDED APPROACH**: v3.0 Ensemble (Strategy B)
-- **Files**: ENSEMBLE_v3.0_COMPLETE.py + ENSEMBLE_PREDICTION.py
-- **Guide**: [ENSEMBLE_GUIDE.md](ENSEMBLE_GUIDE.md) (완벽한 한글 가이드)
+- **Files**: [scripts/colab/subtask2a/](scripts/colab/subtask2a/)
+- **Guide**: [docs/subtask2a/ENSEMBLE_GUIDE.md](docs/subtask2a/ENSEMBLE_GUIDE.md) (완벽한 한글 가이드)
 - **Expected**: CCC 0.530-0.550
 - **Success**: 85% probability
 - **Time**: ~3 hours
 
 **Quick Start**:
-1. Read [ENSEMBLE_GUIDE.md](ENSEMBLE_GUIDE.md) 📖
+1. Read [docs/subtask2a/ENSEMBLE_GUIDE.md](docs/subtask2a/ENSEMBLE_GUIDE.md) 📖
 2. Train 2 more models (seed 123, 777)
 3. Run ensemble prediction
 4. Achieve CCC 0.530-0.550 🎯
@@ -334,3 +354,8 @@ For questions or issues, please open a GitHub issue.
 - ✅ Arousal CCC 70% optimal (do NOT increase!)
 - ✅ Dropout 0.3 perfect balance
 - ❌ v3.3 failed: arousal CCC 75% backfired
+
+**Project Organization**:
+- 📂 [docs/subtask2a/](docs/subtask2a/) - All documentation
+- 📂 [scripts/colab/subtask2a/](scripts/colab/subtask2a/) - Training scripts
+- 📂 [archive/](archive/) - Trial-and-error versions

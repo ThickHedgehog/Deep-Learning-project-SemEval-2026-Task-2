@@ -33,7 +33,8 @@ logs/
 scripts/data_analysis/
 
 # Documentation (not needed for submission)
-docs/
+docs/*
+!docs/subtask2a/
 
 # Temporary model files in root (should be in models/)
 best_model.pt

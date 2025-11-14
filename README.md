@@ -8,33 +8,34 @@
 
 ---
 
-## 🎯 Subtask 2a - Final Model (v3.3 MINIMAL)
+## 🎯 Subtask 2a - Current Status
 
-### ✅ Status: Ready to Train
+### ✅ Best Model: v3.0 Dual-Head (CCC 0.5144)
 
-**Model**: v3.3 MINIMAL - Evidence-Based Optimization
+**Status**: v3.3 tested but performed below v3.0
 
-**Expected Performance**: CCC 0.54-0.58 (Realistic, Achievable)
+**Tested Versions**:
+- v3.0: CCC 0.5144 ⭐ **BEST**
+- v3.3: CCC 0.5053 (below target)
+- v3.2: CCC 0.2883 (catastrophic)
 
 **Architecture**: RoBERTa + BiLSTM + Multi-Head Attention + Dual-Head Loss
 
-**Training Time**: ~90 minutes on Tesla T4 GPU
-
-**Key Improvement**: Fixed overfitting from v3.0 with 6 minimal, proven changes
+**Next Steps**: See [FINAL_COMPREHENSIVE_ANALYSIS.md](FINAL_COMPREHENSIVE_ANALYSIS.md) for recommendations
 
 ---
 
 ## 📚 Documentation
 
-**Start Here** (v3.3 MINIMAL):
-- **[V3.3_QUICKSTART.md](V3.3_QUICKSTART.md)** ⭐ - Execute v3.3 in 5 steps (recommended)
-- **[V3.3_SUMMARY.md](V3.3_SUMMARY.md)** 📊 - Why v3.3 will work (detailed analysis)
+**📊 Analysis & Results**:
+- **[FINAL_COMPREHENSIVE_ANALYSIS.md](FINAL_COMPREHENSIVE_ANALYSIS.md)** ⭐⭐⭐ - **MUST READ** - Complete analysis & recommendations
+- **[V3.3_ACTUAL_RESULTS.md](V3.3_ACTUAL_RESULTS.md)** 📊 - v3.3 training results & failure analysis
+- **[DEEP_ANALYSIS.md](DEEP_ANALYSIS.md)** 🔬 - Why v3.2 failed catastrophically
 
-**Previous Versions**:
-- **[QUICKSTART.md](QUICKSTART.md)** - v3.0 baseline guide
-- **[TRAINING_RESULTS_v3.md](TRAINING_RESULTS_v3.md)** - v3.0 actual results (CCC 0.51)
-- **[V3.1_IMPROVEMENTS.md](V3.1_IMPROVEMENTS.md)** - v3.1 plan (not tested)
-- **[DEEP_ANALYSIS.md](DEEP_ANALYSIS.md)** - Analysis of v3.2 failure
+**📖 Training Guides**:
+- **[QUICKSTART.md](QUICKSTART.md)** - v3.0 execution guide (best model)
+- **[V3.3_QUICKSTART.md](V3.3_QUICKSTART.md)** - v3.3 execution guide (tested, below target)
+- **[TRAINING_RESULTS_v3.md](TRAINING_RESULTS_v3.md)** - v3.0 results (CCC 0.514)
 
 **Additional Resources**:
 - **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status
@@ -43,30 +44,33 @@
 
 ---
 
-## 🚀 Quick Start - Google Colab (Recommended)
+## 🚀 Quick Start - Google Colab
 
-### Version 3.3 MINIMAL (Latest, Recommended)
-
-**File**: `COLAB_FINAL_v3.3_MINIMAL.py`
-**Expected**: CCC 0.54-0.58 (realistic)
-**Time**: ~90 minutes
-
-1. Open https://colab.research.google.com/
-2. Runtime → Change runtime type → **T4 GPU**
-3. Copy **entire** `COLAB_FINAL_v3.3_MINIMAL.py` → Paste in one cell
-4. Run cell (Shift + Enter)
-5. Upload `train_subtask2a.csv` when prompted
-6. Login to wandb when prompted
-7. Wait ~90 minutes
-8. Check results (target: CCC 0.54-0.58)
-
-**See [V3.3_QUICKSTART.md](V3.3_QUICKSTART.md) for detailed guide**
-
-### Version 3.0 Baseline (Reference)
+### ⭐ RECOMMENDED: v3.0 Dual-Head (BEST Model)
 
 **File**: `COLAB_COMPLETE_CODE.py`
-**Actual Result**: CCC 0.51 (tested)
+**Actual Result**: CCC 0.5144 ✅ **BEST TESTED**
 **Issue**: Overfitting (train-val gap 0.39)
+
+**Steps**:
+1. Open https://colab.research.google.com/
+2. Runtime → Change runtime type → **T4 GPU**
+3. Copy **entire** `COLAB_COMPLETE_CODE.py` → Paste in one cell
+4. Run cell (Shift + Enter)
+5. Upload `train_subtask2a.csv` when prompted
+6. Wait ~90 minutes
+
+**See [QUICKSTART.md](QUICKSTART.md) for detailed guide**
+
+### ⚠️ v3.3 MINIMAL (Tested, Below Target)
+
+**File**: `COLAB_FINAL_v3.3_MINIMAL.py`
+**Actual Result**: CCC 0.5053 ❌ Below v3.0
+**Why Failed**: Arousal CCC 75% backfired, user emb 32 too small
+
+**NOT RECOMMENDED** - Use v3.0 instead or wait for v3.4
+
+**See [V3.3_ACTUAL_RESULTS.md](V3.3_ACTUAL_RESULTS.md) for failure analysis**
 
 ---
 
@@ -146,40 +150,45 @@ Dual Heads (Separate 2-layer networks)
 | v0 baseline | 0.51 | 0.55 | 0.47 | - | ❌ Weak |
 | v1 advanced | 0.57 | 0.61 | 0.52 | - | ⚠️ Unverified |
 | v2 optimized | 0.48 | 0.69 | 0.26 | - | ❌ Catastrophic |
-| **v3.0 dual-head** | **0.514** | **0.638** | **0.391** | **0.39** | ⚠️ **Overfitting** |
-| v3.2 ultimate | 0.29 | 0.48 | 0.09 | 0.14 | ❌ Failed |
-| **v3.3 minimal** | **0.54-0.58** | **0.62-0.64** | **0.43-0.48** | **0.20-0.28** | 🎯 **Expected** |
+| **v3.0 dual-head** | **0.5144** | **0.6380** | **0.3908** | **0.392** | ⭐ **BEST ACTUAL** |
+| v3.2 ultimate | 0.2883 | 0.4825 | 0.0942 | 0.144 | ❌ Failed |
+| v3.3 minimal | 0.5053 | 0.6532 | 0.3574 | 0.316 | ⚠️ Below target |
 
-### v3.3 Expected Results
+### v3.3 Actual Results
 
 ```
 ================================================================================
-v3.3 MINIMAL - EXPECTED RESULTS (85% confidence)
+v3.3 MINIMAL - ACTUAL RESULTS (Epoch 16)
 ================================================================================
-CCC Average:  0.54-0.58  ✅ Realistic improvement
-CCC Valence:  0.62-0.64  ✅ Slight decrease acceptable
-CCC Arousal:  0.43-0.48  ✅ Significant improvement (+0.04-0.09)
-Train-Val Gap: 0.20-0.28  ✅ Reduced overfitting (-0.11-0.19)
+CCC Average:  0.5053  ❌ Below target (Expected: 0.54-0.58)
+CCC Valence:  0.6532  ✅ Improved from v3.0
+CCC Arousal:  0.3574  ❌ Worse than v3.0 (was 0.3908)
+Train-Val Gap: 0.3156  ⚠️ Reduced but above target
+Train CCC:     0.8209  ✅ Reduced overfitting
 ================================================================================
 ```
 
-### Why v3.3 Works:
+### Why v3.3 Failed to Meet Target:
 
-**v3.0 Issues**:
-- CCC Average: 0.51 ⚠️ (below target)
-- Train-Val Gap: 0.39 ❌ (severe overfitting)
-- Arousal CCC: 0.39 ⚠️ (weak)
+**What Worked** ✅:
+- Reduced overfitting (gap 0.39 → 0.32)
+- Valence improved (0.638 → 0.653)
+- Dropout 0.3 effective (not too high)
+- Train CCC reduced (0.906 → 0.821)
 
-**v3.2 Failure**:
-- Removed user embeddings → CCC dropped to 0.29 ❌
-- Too many changes at once (10+) → couldn't debug
-- Dropout 0.4 too high → underfitting
+**What Failed** ❌:
+- **Arousal CCC 75% backfired** (0.391 → 0.357, -0.034)
+  - Should have stayed at 70%
+- **User embedding 32 too small** (lost capacity)
+  - Sweet spot is 48 dim
+- **LSTM 192 slightly small** (224 better)
+- **Overall CCC dropped** (0.514 → 0.505)
 
-**v3.3 Solution**:
-- **Keep user embeddings** but reduce (64→32)
-- **Only 6 minimal changes** (evidence-based)
-- **Moderate regularization** (dropout 0.3, not 0.4)
-- **Realistic target** (0.54-0.58, not 0.65-0.72)
+**Key Lessons**:
+- ✅ Arousal CCC 70% is OPTIMAL (do not increase!)
+- ✅ User emb sweet spot: 48-56 dim (not 32, not 64)
+- ✅ Dropout 0.3 is perfect
+- ✅ High capacity + strong regularization > Medium + medium
 
 ---
 
@@ -269,12 +278,19 @@ For questions or issues, please open a GitHub issue.
 
 ---
 
-**Last Updated**: 2025-11-09
+**Last Updated**: 2025-11-14
 
-**Version**: 3.3 MINIMAL (Evidence-Based)
+**Current Best Model**: v3.0 Dual-Head (CCC 0.5144)
 
-**Status**: ✅ Ready to Train
+**Status**: ✅ Analysis Complete - Awaiting Decision
 
-**Expected Result**: CCC 0.54-0.58 🎯 (Realistic)
+**Next Steps**: See [FINAL_COMPREHENSIVE_ANALYSIS.md](FINAL_COMPREHENSIVE_ANALYSIS.md)
 
-**Key Learning**: Simple, evidence-based changes > Complex optimizations
+**Recommended Strategy**: v3.0 Ensemble (3 seeds) → Expected CCC 0.530-0.550
+
+**Key Learnings**:
+- ✅ v3.0 remains BEST (0.5144)
+- ✅ User embeddings essential (+0.226 CCC)
+- ✅ Arousal CCC 70% optimal (do NOT increase!)
+- ✅ Dropout 0.3 perfect balance
+- ❌ v3.3 failed: arousal CCC 75% backfired

@@ -74,7 +74,11 @@ if torch.cuda.is_available():
 
 # ===== WANDB SETUP =====
 print('\n=== WANDB SETUP ===')
-wandb.login()
+# Login only if not already logged in
+if not wandb.api.api_key:
+    wandb.login()
+else:
+    print('✓ Already logged in to wandb')
 
 # ===== UPLOAD DATA =====
 print('\n=== UPLOAD DATA ===')

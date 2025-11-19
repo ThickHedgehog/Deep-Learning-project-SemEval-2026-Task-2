@@ -178,10 +178,11 @@ print(f'✓ Feature extraction complete: {len([c for c in df.columns if c not in
 # ===== STARTING TRAINING =====
 print('\n=== STARTING TRAINING ===')
 
-# Initialize wandb
+# Initialize wandb with increased timeout
 wandb.init(
     project="semeval-2026-task2-subtask2a-ensemble",
     name=f"v3.0-ensemble-seed{RANDOM_SEED}",
+    settings=wandb.Settings(init_timeout=180),  # Increased timeout to 3 minutes
     config={
         "version": "v3.0-ENSEMBLE",
         "seed": RANDOM_SEED,

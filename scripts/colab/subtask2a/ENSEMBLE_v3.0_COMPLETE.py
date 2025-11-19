@@ -26,8 +26,11 @@ Key: Arousal CCC 70%, User Emb 64 dim, LSTM 256 hidden, Dropout 0.2
 
 # ===== CONFIGURATION =====
 # CHANGE THIS FOR EACH TRAINING RUN
-RANDOM_SEED = 123  # Change to 42, 123, or 777 for different runs
+RANDOM_SEED = 777  # Change to 42, 123, or 777 for different runs
 MODEL_SAVE_NAME = f'v3.0_seed{RANDOM_SEED}_best.pt'
+
+# WandB control - Set to False if wandb connection fails
+USE_WANDB = False  # Change to False to disable wandb (faster if connection issues)
 
 print(f'='*80)
 print(f'v3.0 ENSEMBLE TRAINING - SEED {RANDOM_SEED}')
@@ -73,12 +76,21 @@ if torch.cuda.is_available():
     print(f'Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB')
 
 # ===== WANDB SETUP =====
-print('\n=== WANDB SETUP ===')
-# Login only if not already logged in
-if not wandb.api.api_key:
-    wandb.login()
+if USE_WANDB:
+    print('\n=== WANDB SETUP ===')
+    # Login only if not already logged in
+    try:
+        if not wandb.api.api_key:
+            wandb.login()
+        else:
+            print('✓ Already logged in to wandb')
+    except Exception as e:
+        print(f'⚠️ WandB login failed: {e}')
+        print('Continuing without WandB...')
+        USE_WANDB = False
 else:
-    print('✓ Already logged in to wandb')
+    print('\n=== WANDB DISABLED ===')
+    print('Training without WandB (faster if connection issues)')
 
 # ===== UPLOAD DATA =====
 print('\n=== UPLOAD DATA ===')
@@ -178,34 +190,41 @@ print(f'✓ Feature extraction complete: {len([c for c in df.columns if c not in
 # ===== STARTING TRAINING =====
 print('\n=== STARTING TRAINING ===')
 
-# Initialize wandb with increased timeout
-wandb.init(
-    project="semeval-2026-task2-subtask2a-ensemble",
-    name=f"v3.0-ensemble-seed{RANDOM_SEED}",
-    settings=wandb.Settings(init_timeout=180),  # Increased timeout to 3 minutes
-    config={
-        "version": "v3.0-ENSEMBLE",
-        "seed": RANDOM_SEED,
-        "architecture": "RoBERTa-BiLSTM-Attention-DualHead",
-        "user_emb_dim": 64,  # PROVEN OPTIMAL
-        "lstm_hidden": 256,  # PROVEN OPTIMAL
-        "lstm_layers": 2,
-        "dropout": 0.2,  # PROVEN OPTIMAL
-        "seq_length": 7,
-        "batch_size": 10,
-        "num_epochs": 20,
-        "patience": 7,
-        "warmup_ratio": 0.15,
-        "lr_roberta": 1.5e-5,
-        "lr_other": 8e-5,
-        "weight_decay": 0.01,
-        "ccc_weight_valence": 0.65,
-        "ccc_weight_arousal": 0.70,  # PROVEN OPTIMAL - DO NOT CHANGE!
-        "mse_weight_valence": 0.35,
-        "mse_weight_arousal": 0.30,
-        "expected_ccc": "0.510-0.515 (single), 0.530-0.550 (ensemble)"
-    }
-)
+# Initialize wandb with increased timeout (only if enabled)
+if USE_WANDB:
+    try:
+        wandb.init(
+            project="semeval-2026-task2-subtask2a-ensemble",
+            name=f"v3.0-ensemble-seed{RANDOM_SEED}",
+            settings=wandb.Settings(init_timeout=180),  # Increased timeout to 3 minutes
+            config={
+                "version": "v3.0-ENSEMBLE",
+                "seed": RANDOM_SEED,
+                "architecture": "RoBERTa-BiLSTM-Attention-DualHead",
+                "user_emb_dim": 64,  # PROVEN OPTIMAL
+                "lstm_hidden": 256,  # PROVEN OPTIMAL
+                "lstm_layers": 2,
+                "dropout": 0.2,  # PROVEN OPTIMAL
+                "seq_length": 7,
+                "batch_size": 10,
+                "num_epochs": 20,
+                "patience": 7,
+                "warmup_ratio": 0.15,
+                "lr_roberta": 1.5e-5,
+                "lr_other": 8e-5,
+                "weight_decay": 0.01,
+                "ccc_weight_valence": 0.65,
+                "ccc_weight_arousal": 0.70,  # PROVEN OPTIMAL - DO NOT CHANGE!
+                "mse_weight_valence": 0.35,
+                "mse_weight_arousal": 0.30,
+                "expected_ccc": "0.510-0.515 (single), 0.530-0.550 (ensemble)"
+            }
+        )
+        print('✓ WandB initialized successfully')
+    except Exception as e:
+        print(f'⚠️ WandB init failed: {e}')
+        print('Continuing without WandB...')
+        USE_WANDB = False
 
 print('='*80)
 print('v3.0 ENSEMBLE MODEL - PROVEN BEST CONFIGURATION')
@@ -609,22 +628,23 @@ for epoch in range(NUM_EPOCHS):
     print(f'  Val CCC Valence: {val_ccc_v:.4f}, Val CCC Arousal: {val_ccc_a:.4f}')
     print(f'  Val RMSE Valence: {val_rmse_v:.4f}, Val RMSE Arousal: {val_rmse_a:.4f}')
 
-    # Log to wandb
-    wandb.log({
-        'epoch': epoch + 1,
-        'train/loss': train_loss,
-        'train/ccc_avg': train_ccc,
-        'train/ccc_valence': train_ccc_v,
-        'train/ccc_arousal': train_ccc_a,
-        'val/loss': val_loss,
-        'val/ccc_avg': val_ccc,
-        'val/ccc_valence': val_ccc_v,
-        'val/ccc_arousal': val_ccc_a,
-        'val/rmse_valence': val_rmse_v,
-        'val/rmse_arousal': val_rmse_a,
-        'learning_rate': scheduler.get_last_lr()[0],
-        'patience_counter': patience_counter
-    })
+    # Log to wandb (if enabled)
+    if USE_WANDB:
+        wandb.log({
+            'epoch': epoch + 1,
+            'train/loss': train_loss,
+            'train/ccc_avg': train_ccc,
+            'train/ccc_valence': train_ccc_v,
+            'train/ccc_arousal': train_ccc_a,
+            'val/loss': val_loss,
+            'val/ccc_avg': val_ccc,
+            'val/ccc_valence': val_ccc_v,
+            'val/ccc_arousal': val_ccc_a,
+            'val/rmse_valence': val_rmse_v,
+            'val/rmse_arousal': val_rmse_a,
+            'learning_rate': scheduler.get_last_lr()[0],
+            'patience_counter': patience_counter
+        })
 
     # Save best model
     if val_ccc > best_ccc:
@@ -652,13 +672,14 @@ for epoch in range(NUM_EPOCHS):
         }, MODEL_SAVE_NAME)
         print(f'  ✓ Best model saved! (CCC: {best_ccc:.4f})')
 
-        # Log best to wandb
-        wandb.run.summary['best_ccc'] = best_ccc
-        wandb.run.summary['best_ccc_valence'] = val_ccc_v
-        wandb.run.summary['best_ccc_arousal'] = val_ccc_a
-        wandb.run.summary['best_epoch'] = epoch + 1
-        wandb.run.summary['best_rmse_valence'] = val_rmse_v
-        wandb.run.summary['best_rmse_arousal'] = val_rmse_a
+        # Log best to wandb (if enabled)
+        if USE_WANDB:
+            wandb.run.summary['best_ccc'] = best_ccc
+            wandb.run.summary['best_ccc_valence'] = val_ccc_v
+            wandb.run.summary['best_ccc_arousal'] = val_ccc_a
+            wandb.run.summary['best_epoch'] = epoch + 1
+            wandb.run.summary['best_rmse_valence'] = val_rmse_v
+            wandb.run.summary['best_rmse_arousal'] = val_rmse_a
     else:
         patience_counter += 1
         print(f'  No improvement. Patience: {patience_counter}/{PATIENCE}')
@@ -673,17 +694,19 @@ print('='*80)
 print(f'Best validation CCC: {best_ccc:.4f}')
 print(f'Model saved as: {MODEL_SAVE_NAME}')
 
-# Save WandB URL before finish
-wandb_url = f'https://wandb.ai/{wandb.run.entity}/{wandb.run.project}/runs/{wandb.run.id}'
-wandb.finish()
+# Save WandB URL before finish (if enabled)
+if USE_WANDB:
+    wandb_url = f'https://wandb.ai/{wandb.run.entity}/{wandb.run.project}/runs/{wandb.run.id}'
+    wandb.finish()
+    print(f'\n✓ Check your wandb dashboard for training visualization!')
+    print(f'   Visit: {wandb_url}')
+else:
+    print('\n✓ Training completed without WandB logging')
 
 print('\n=== DOWNLOADING MODEL ===')
 from google.colab import files
 files.download(MODEL_SAVE_NAME)
 print('✓ Download complete!')
-
-print(f'\n✓ Check your wandb dashboard for training visualization!')
-print(f'   Visit: {wandb_url}')
 
 print('\n' + '='*80)
 print(f'SEED {RANDOM_SEED} TRAINING COMPLETE!')

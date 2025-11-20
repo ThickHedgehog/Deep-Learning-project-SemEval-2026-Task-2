@@ -21,6 +21,35 @@ import torch
 import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr
+from google.colab import files
+import os
+
+print('='*80)
+print('v3.0 ENSEMBLE PREDICTION')
+print('='*80)
+
+# ===== UPLOAD MODEL FILES =====
+print('\n' + '='*80)
+print('UPLOAD MODEL FILES')
+print('='*80)
+print('Please upload the following 3 model files:')
+print('  1. v3.0_seed42_best.pt')
+print('  2. v3.0_seed123_best.pt')
+print('  3. v3.0_seed777_best.pt')
+print()
+
+uploaded = files.upload()
+print(f'\n✓ Uploaded {len(uploaded)} files')
+
+# Verify all files are present
+required_files = ['v3.0_seed42_best.pt', 'v3.0_seed123_best.pt', 'v3.0_seed777_best.pt']
+for f in required_files:
+    if f not in uploaded and not os.path.exists(f):
+        print(f'❌ ERROR: Missing file: {f}')
+        print('Please upload all 3 model files!')
+        raise FileNotFoundError(f'Missing required file: {f}')
+
+print('✓ All model files found!')
 
 # ===== CONFIGURATION =====
 MODEL_PATHS = {
@@ -29,33 +58,67 @@ MODEL_PATHS = {
     'seed777': 'v3.0_seed777_best.pt'
 }
 
-print('='*80)
-print('v3.0 ENSEMBLE PREDICTION')
+print('\n' + '='*80)
+print('LOADING MODELS')
 print('='*80)
 
 # Load model checkpoints
 checkpoints = {}
 for seed_name, path in MODEL_PATHS.items():
-    checkpoint = torch.load(path, map_location='cpu')
+    print(f'\nLoading {seed_name}...')
+    checkpoint = torch.load(path, map_location='cpu', weights_only=False)
     checkpoints[seed_name] = checkpoint
+
+print('\n' + '='*80)
+print('MODEL PERFORMANCE SUMMARY')
+print('='*80)
+for seed_name, checkpoint in checkpoints.items():
     print(f'\n{seed_name}:')
-    print(f'  CCC: {checkpoint["best_ccc"]:.4f}')
-    print(f'  Valence: {checkpoint["val_ccc_v"]:.4f}')
-    print(f'  Arousal: {checkpoint["val_ccc_a"]:.4f}')
-    print(f'  Epoch: {checkpoint["epoch"]}')
+    print(f'  CCC Average: {checkpoint["best_ccc"]:.4f}')
+    print(f'  CCC Valence: {checkpoint["val_ccc_v"]:.4f}')
+    print(f'  CCC Arousal: {checkpoint["val_ccc_a"]:.4f}')
+    print(f'  Best Epoch: {checkpoint["epoch"]}')
+    print(f'  RMSE Valence: {checkpoint.get("val_rmse_v", 0):.4f}')
+    print(f'  RMSE Arousal: {checkpoint.get("val_rmse_a", 0):.4f}')
+
+# Calculate averages
+avg_ccc = np.mean([ckpt['best_ccc'] for ckpt in checkpoints.values()])
+avg_val = np.mean([ckpt['val_ccc_v'] for ckpt in checkpoints.values()])
+avg_aro = np.mean([ckpt['val_ccc_a'] for ckpt in checkpoints.values()])
+
+print('\n' + '-'*80)
+print('INDIVIDUAL MODEL AVERAGE:')
+print(f'  CCC Average: {avg_ccc:.4f}')
+print(f'  CCC Valence: {avg_val:.4f}')
+print(f'  CCC Arousal: {avg_aro:.4f}')
 
 print('\n' + '='*80)
 
 # ===== WEIGHTED ENSEMBLE =====
+print('CALCULATING ENSEMBLE WEIGHTS')
+print('='*80)
 
 # Calculate weights based on performance
 cccs = {name: ckpt['best_ccc'] for name, ckpt in checkpoints.items()}
 total_ccc = sum(cccs.values())
 weights = {name: ccc / total_ccc for name, ccc in cccs.items()}
 
-print('\nENSEMBLE WEIGHTS (performance-based):')
+print('\nPerformance-based Weights:')
 for name, weight in weights.items():
-    print(f'  {name}: {weight:.3f} (CCC: {cccs[name]:.4f})')
+    print(f'  {name}: {weight*100:5.1f}% (CCC: {cccs[name]:.4f})')
+
+# Expected ensemble improvement
+expected_boost_min = 0.020
+expected_boost_max = 0.040
+expected_ensemble_min = avg_ccc + expected_boost_min
+expected_ensemble_max = avg_ccc + expected_boost_max
+
+print(f'\nExpected Ensemble Performance:')
+print(f'  Individual Average: {avg_ccc:.4f}')
+print(f'  Expected Boost: +{expected_boost_min:.3f} ~ +{expected_boost_max:.3f}')
+print(f'  Expected Ensemble: {expected_ensemble_min:.4f} ~ {expected_ensemble_max:.4f}')
+
+print('\n' + '='*80)
 
 # ===== LOAD TEST DATA & GENERATE PREDICTIONS =====
 
@@ -198,8 +261,16 @@ print(f'\\n  Ensemble improvement: +{improvement:.4f} CCC')
 print('\n' + '='*80)
 print('EXPECTED RESULTS')
 print('='*80)
-print('Individual models: CCC 0.510-0.515')
-print('Weighted ensemble: CCC 0.530-0.550')
-print('Simple average:    CCC 0.528-0.548')
-print('\nRecommendation: Use weighted ensemble for best performance')
+print('ACTUAL INDIVIDUAL MODELS:')
+print('  seed42:  CCC 0.5144')
+print('  seed123: CCC 0.5330')
+print('  seed777: CCC 0.6554 ⭐')
+print('  Average: CCC 0.5676')
+print()
+print('EXPECTED ENSEMBLE:')
+print('  Weighted ensemble: CCC 0.5876-0.5976')
+print('  Simple average:    CCC 0.5856-0.5956')
+print()
+print('Recommendation: Use weighted ensemble for best performance')
+print('Expected improvement: +0.020 ~ +0.030 CCC over individual average')
 print('='*80)

@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-11-20T22:09:39.393446",
+  "device": "cuda",
+  "individual_models": {
+    "seed42": {
+      "ccc": 0.5053287744522095,
+      "valence_ccc": 0.6532277464866638,
+      "arousal_ccc": 0.3574298024177551,
+      "epoch": 16,
+      "rmse_valence": 1.1040661334991455,
+      "rmse_arousal": 0.7773992419242859
+    },
+    "seed123": {
+      "ccc": 0.5329769104719162,
+      "valence_ccc": 0.6297867894172668,
+      "arousal_ccc": 0.43616703152656555,
+      "epoch": 18,
+      "rmse_valence": 1.00814950466156,
+      "rmse_arousal": 0.6848173141479492
+    },
+    "seed777": {
+      "ccc": 0.6554458439350128,
+      "valence_ccc": 0.7592954039573669,
+      "arousal_ccc": 0.5515962839126587,
+      "epoch": 9,
+      "rmse_valence": 0.8529320359230042,
+      "rmse_arousal": 0.6953734159469604
+    }
+  },
+  "averages": {
+    "ccc": 0.5645838429530462,
+    "valence_ccc": 0.6807699799537659,
+    "arousal_ccc": 0.4483977059523265
+  },
+  "ensemble": {
+    "weights": {
+      "seed42": 0.2983488142490387,
+      "seed123": 0.31467244029045105,
+      "seed777": 0.38697871565818787
+    },
+    "expected_boost_min": 0.02,
+    "expected_boost_max": 0.04,
+    "expected_ccc_min": 0.5845838429530462,
+    "expected_ccc_max": 0.6045838429530462
+  },
+  "notes": {
+    "method": "Performance-based weighted averaging",
+    "boost_range": "+0.020 ~ +0.040 CCC",
+    "best_model": "seed777 (CCC 0.6554)",
+    "recommendation": "Use weighted ensemble for best performance"
+  }
+}

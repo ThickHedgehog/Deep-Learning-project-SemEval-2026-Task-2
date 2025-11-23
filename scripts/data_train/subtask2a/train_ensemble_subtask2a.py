@@ -1,33 +1,33 @@
 # ============================================================================
-# v3.0 ENSEMBLE - COMPLETE SOLUTION (3 Seeds)
+# Subtask 2a - Ensemble Model Training
 # ============================================================================
 #
-# STRATEGY B - v3.0 Ensemble (RECOMMENDED, 85% Success Probability)
-# Expected: CCC 0.530-0.550
+# Train emotion prediction models with different random seeds for ensemble
 #
-# This file trains v3.0 with different seeds and creates ensemble predictions
+# Expected: CCC 0.5846-0.6046 (ensemble of 3 models)
+# Individual model: CCC 0.50-0.66
 #
 # Instructions:
-# 1. Train model with seed=42 (already done, CCC 0.5144)
+# 1. Train model with seed=42 (already done, CCC 0.5053)
 # 2. Train model with seed=123 using this file
 # 3. Train model with seed=777 using this file
-# 4. Use ensemble prediction code at the end
+# 4. Use ensemble weight analysis script to combine predictions
 #
 # ============================================================================
 
 """
-v3.0 ENSEMBLE TRAINING
-======================
-Best proven model (CCC 0.5144) trained with multiple seeds for ensemble
+Subtask 2a - Ensemble Model Training
+=====================================
+Train emotion prediction model (Valence & Arousal) with configurable seed
 
 Architecture: RoBERTa + BiLSTM + Multi-Head Attention + Dual-Head Loss
-Key: Arousal CCC 70%, User Emb 64 dim, LSTM 256 hidden, Dropout 0.2
+Key: Arousal CCC 70%, User Emb 64 dim, LSTM 256 hidden, Dropout 0.3
 """
 
 # ===== CONFIGURATION =====
 # CHANGE THIS FOR EACH TRAINING RUN
 RANDOM_SEED = 777  # Change to 42, 123, or 777 for different runs
-MODEL_SAVE_NAME = f'v3.0_seed{RANDOM_SEED}_best.pt'
+MODEL_SAVE_NAME = f'subtask2a_seed{RANDOM_SEED}_best.pt'
 
 # WandB control - Set to False if wandb connection fails
 USE_WANDB = False  # Change to False to disable wandb (faster if connection issues)

@@ -19,28 +19,18 @@ envs/
 .env
 .envrc
 
-# Data / models / outputs
-data/*
-!data/.placeholder
-!data/README.md
-!data/*.md
-models/
-outputs/
-predictions/
-logs/
-
-# Analysis scripts (not needed for submission)
-scripts/data_analysis/
 
 # Documentation (personal, not shared with team)
 docs/
-FINAL_PROJECT_STRUCTURE.md
+01_PROJECT_OVERVIEW.md
+02_TRAINING_AND_RESULTS.md
+03_EVALUATION_DEC3.md
+04_SUBMISSION_GUIDE.md
 FINAL_SUMMARY.md
 FOLDER_CLEANUP_PLAN.md
+HOW_TO_USE.md
 PROJECT_CLEANUP_SUMMARY.md
 
-# Temporary model files in root (should be in models/)
-best_model.pt
 
 # Claude settings (personal)
 .claude/

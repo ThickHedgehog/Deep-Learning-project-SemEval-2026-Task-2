@@ -8,10 +8,13 @@
 
 ```
 data_train/
-├── train_subtask1.py               # Subtask 1 훈련 (팀원)
-└── subtask2a/                       # Subtask 2a 훈련 (당신)
-    ├── train_ensemble_subtask2a.py  # 앙상블 훈련 (완료)
-    └── README.md
+├── README.md                    # 이 파일
+├── subtask1/                    # Subtask 1 훈련 (팀원)
+│   ├── README.md
+│   └── train_subtask1.py
+└── subtask2a/                   # Subtask 2a 훈련 (당신)
+    ├── README.md
+    └── train_ensemble_subtask2a.py    # ✅ 훈련 완료
 ```
 
 ---
@@ -19,10 +22,10 @@ data_train/
 ## 🎯 사용 시점
 
 ### Subtask 1 (팀원)
-- `train_subtask1.py` - 모델 훈련 (진행 중)
+- `subtask1/train_subtask1.py` - 모델 훈련 (진행 중)
 
 ### Subtask 2a (당신)
-- `train_ensemble_subtask2a.py` - ✅ 훈련 완료
+- `subtask2a/train_ensemble_subtask2a.py` - ✅ 훈련 완료
   - 3개 모델 (seed 42, 123, 777)
   - 결과: CCC 0.5053, 0.5330, 0.6554
 

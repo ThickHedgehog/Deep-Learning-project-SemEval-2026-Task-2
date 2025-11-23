@@ -8,9 +8,12 @@
 
 ```
 data_preparation/
-├── simple_data_prep_subtask1.py    # Subtask 1 전처리 (팀원)
-└── subtask2a/                       # Subtask 2a 전처리 (당신)
-    └── README.md                    # 현재 비어있음
+├── README.md                    # 이 파일
+├── subtask1/                    # Subtask 1 전처리 (팀원)
+│   ├── README.md
+│   └── simple_data_prep_subtask1.py
+└── subtask2a/                   # Subtask 2a 전처리 (당신)
+    └── README.md                # 전처리 로직이 훈련에 통합됨
 ```
 
 ---
@@ -18,7 +21,7 @@ data_preparation/
 ## 🎯 사용 시점
 
 ### Subtask 1 (팀원)
-- `simple_data_prep_subtask1.py` - 데이터 전처리
+- `subtask1/simple_data_prep_subtask1.py` - 데이터 전처리
 
 ### Subtask 2a (당신)
 - 전처리 로직이 훈련 스크립트에 통합됨

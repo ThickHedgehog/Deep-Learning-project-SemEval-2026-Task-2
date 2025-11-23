@@ -38,20 +38,6 @@
 
 ---
 
-## 🚀 Quick Start
-
-### 🎯 **HOW TO USE** ⭐⭐⭐
-
-**▶️ START HERE**: [HOW_TO_USE.md](HOW_TO_USE.md) ⭐⭐⭐
-- **어떤 파일을 언제 사용하는지 명확히 설명**
-- 단계별 실행 가이드
-- 에러 해결 방법
-
-**🔧 Google Colab Setup**: [COLAB_SETUP.md](COLAB_SETUP.md) ⭐⭐⭐
-- 완전한 Colab 셋업 가이드 (단계별)
-- Google Drive 파일 복사 방법
-- 모든 에러 해결 방법
-
 ### 📖 Complete Training Guide
 
 **Training Reference**: [docs/subtask2a/ENSEMBLE_GUIDE.md](docs/subtask2a/ENSEMBLE_GUIDE.md)

@@ -26,8 +26,6 @@ outputs/
 predictions/
 logs/
 
-# Analysis scripts (not needed for submission)
-scripts/data_analysis/
 
 # Documentation (personal, not shared with team)
 docs/

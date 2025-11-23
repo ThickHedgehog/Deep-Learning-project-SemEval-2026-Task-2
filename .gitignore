@@ -20,6 +20,15 @@ envs/
 .envrc
 
 
+# Data / models / outputs
+models/
+outputs/
+predictions/
+logs/
+
+# Analysis scripts (not needed for submission)
+scripts/data_analysis/
+
 # Documentation (personal, not shared with team)
 docs/
 01_PROJECT_OVERVIEW.md
@@ -30,7 +39,6 @@ FINAL_SUMMARY.md
 FOLDER_CLEANUP_PLAN.md
 HOW_TO_USE.md
 PROJECT_CLEANUP_SUMMARY.md
-
 
 # Claude settings (personal)
 .claude/

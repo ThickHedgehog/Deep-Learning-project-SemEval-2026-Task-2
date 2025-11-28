@@ -19,25 +19,22 @@ envs/
 .env
 .envrc
 
-
 # Data / models / outputs
+# data/raw/ and data/processed/ tracked by Git LFS (essential for training)
 data/raw/
-models/
+data/test/
 outputs/
 predictions/
 logs/
 
-
-# Documentation (personal, not shared with team)
+# Models folder (4.3 GB, tracked by Git LFS)
+# models/ folder is now tracked for team collaboration
+models/
+# Documentation (tracked for team collaboration)
+# docs/ folder is now tracked
 docs/
-01_PROJECT_OVERVIEW.md
-02_TRAINING_AND_RESULTS.md
-03_EVALUATION_DEC3.md
-04_SUBMISSION_GUIDE.md
-FINAL_SUMMARY.md
-FOLDER_CLEANUP_PLAN.md
-HOW_TO_USE.md
-PROJECT_CLEANUP_SUMMARY.md
+# Temporary model files in root (should be in models/)
+best_model.pt
 
 # Claude settings (personal)
 .claude/
@@ -55,5 +52,9 @@ pytorch_wheels/
 nul
 *.lnk
 
-# LFS metadata
-.gitattributes
+# Personal files
+RECOVERY_REPORT.md
+FINAL_PROJECT_STRUCTURE.md
+FINAL_SUMMARY.md
+FOLDER_CLEANUP_PLAN.md
+PROJECT_CLEANUP_SUMMARY.md

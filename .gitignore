@@ -21,6 +21,7 @@ envs/
 
 
 # Data / models / outputs
+data/raw/
 models/
 outputs/
 predictions/

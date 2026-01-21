@@ -58,3 +58,13 @@ FINAL_PROJECT_STRUCTURE.md
 FINAL_SUMMARY.md
 FOLDER_CLEANUP_PLAN.md
 PROJECT_CLEANUP_SUMMARY.md
+
+# VS Code workspace files
+*.code-workspace
+
+# Report outputs (generated, not tracked)
+report_outputs/
+
+# Test scripts (personal development)
+scripts/test/
+scripts/report/

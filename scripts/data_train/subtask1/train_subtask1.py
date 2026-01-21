@@ -1,8 +1,3 @@
-"""
-Training script for Subtask 1: Longitudinal Affect Assessment
-Model: BERT + LSTM + User Embeddings + Attention
-"""
-
 import pandas as pd
 import numpy as np
 import torch
@@ -45,11 +40,25 @@ else:
 
 # ===== 1. DATA SPLITTING =====
 
-def temporal_split_by_user(df, train_ratio=0.7, val_ratio=0.15):
-    """Split data temporally per user to preserve chronological order."""
+def temporal_split_by_user(df, train_ratio=0.7, val_ratio=0.15, test_user_ratio=0.2):
+
+    import numpy as np
+    
+    all_users = df['user_id'].unique()
+    np.random.seed(42)
+    np.random.shuffle(all_users)
+    
+    # Split users
+    n_users = len(all_users)
+    n_train_users = int(n_users * (1 - test_user_ratio))
+    
+    train_users = all_users[:n_train_users]
+    test_only_users = all_users[n_train_users:]
+    
     train_dfs, val_dfs, test_dfs = [], [], []
     
-    for user_id in df['user_id'].unique():
+    # Process train users (temporal split within each user)
+    for user_id in train_users:
         user_df = df[df['user_id'] == user_id].sort_values('timestamp')
         n = len(user_df)
         
@@ -60,51 +69,79 @@ def temporal_split_by_user(df, train_ratio=0.7, val_ratio=0.15):
         val_dfs.append(user_df.iloc[train_idx:val_idx])
         test_dfs.append(user_df.iloc[val_idx:])
     
-    return pd.concat(train_dfs), pd.concat(val_dfs), pd.concat(test_dfs)
+    # Process test-only users (unseen users - all data goes to test)
+    for user_id in test_only_users:
+        user_df = df[df['user_id'] == user_id].sort_values('timestamp')
+        test_dfs.append(user_df)
+    
+    train_df = pd.concat(train_dfs) if train_dfs else pd.DataFrame()
+    val_df = pd.concat(val_dfs) if val_dfs else pd.DataFrame()
+    test_df = pd.concat(test_dfs) if test_dfs else pd.DataFrame()
+    
+    return train_df, val_df, test_df
 
 
 # ===== 2. DATASET CLASS =====
 
 class EmotionDataset(Dataset):
-    """Dataset for emotion prediction with temporal sequences."""
     
-    def __init__(self, df, tokenizer, max_length=128, seq_length=5):
+    def __init__(self, df, tokenizer, user_to_idx=None, max_length=128, max_history=10):
         self.tokenizer = tokenizer
         self.max_length = max_length
-        self.seq_length = seq_length
+        self.max_history = max_history
         
-        # Create user ID mapping
-        self.user_ids = df['user_id'].unique()
-        self.user_to_idx = {uid: idx for idx, uid in enumerate(self.user_ids)}
+        # Create or use provided user ID mapping
+        if user_to_idx is None:
+            self.user_ids = df['user_id'].unique()
+            self.user_to_idx = {uid: idx for idx, uid in enumerate(self.user_ids)}
+        else:
+            self.user_to_idx = user_to_idx
+            self.user_ids = list(user_to_idx.keys())
         
-        # Create sequences per user
-        self.sequences = []
-        for user_id in self.user_ids:
+        # Create samples: each text with its history
+        self.samples = []
+        for user_id in df['user_id'].unique():
             user_df = df[df['user_id'] == user_id].sort_values('timestamp').reset_index(drop=True)
-            if len(user_df) < seq_length:
-                continue
             
-            # Create overlapping sequences
-            for i in range(len(user_df) - seq_length + 1):
-                seq_data = user_df.iloc[i:i + seq_length]
-                self.sequences.append({
-                    'texts': seq_data['text_cleaned'].tolist(),
-                    'valences': seq_data['valence'].tolist(),
-                    'arousals': seq_data['arousal'].tolist(),
-                    'user_id': self.user_to_idx[user_id]
+            # For each text, create a sample with history
+            for i in range(len(user_df)):
+                # Get history (up to max_history previous texts)
+                start_idx = max(0, i - self.max_history)
+                history = user_df.iloc[start_idx:i]['text_cleaned'].tolist()
+                current_text = user_df.iloc[i]['text_cleaned']
+                
+                # Get user index (or -1 for unseen users)
+                user_idx = self.user_to_idx.get(user_id, -1)
+                
+                self.samples.append({
+                    'history': history,  # Previous texts
+                    'current_text': current_text,  # Text to predict for
+                    'valence': user_df.iloc[i]['valence'],
+                    'arousal': user_df.iloc[i]['arousal'],
+                    'user_id': user_idx,
+                    'has_user_embed': user_idx != -1
                 })
     
     def __len__(self):
-        return len(self.sequences)
+        return len(self.samples)
     
     def __getitem__(self, idx):
-        seq = self.sequences[idx]
+        sample = self.samples[idx]
         
-        # Tokenize all texts in sequence
-        input_ids_list = []
-        attention_mask_list = []
+        # Tokenize current text
+        current_encoding = self.tokenizer(
+            sample['current_text'],
+            max_length=self.max_length,
+            padding='max_length',
+            truncation=True,
+            return_tensors='pt'
+        )
         
-        for text in seq['texts']:
+        # Tokenize history texts (pad if less than max_history)
+        history_input_ids = []
+        history_attention_mask = []
+        
+        for text in sample['history']:
             encoding = self.tokenizer(
                 text,
                 max_length=self.max_length,
@@ -112,79 +149,127 @@ class EmotionDataset(Dataset):
                 truncation=True,
                 return_tensors='pt'
             )
-            input_ids_list.append(encoding['input_ids'].squeeze(0))
-            attention_mask_list.append(encoding['attention_mask'].squeeze(0))
+            history_input_ids.append(encoding['input_ids'].squeeze(0))
+            history_attention_mask.append(encoding['attention_mask'].squeeze(0))
+        
+        # Pad history to max_history length
+        while len(history_input_ids) < self.max_history:
+            history_input_ids.insert(0, torch.zeros(self.max_length, dtype=torch.long))
+            history_attention_mask.insert(0, torch.zeros(self.max_length, dtype=torch.long))
+        
+        # Keep only last max_history items
+        history_input_ids = history_input_ids[-self.max_history:]
+        history_attention_mask = history_attention_mask[-self.max_history:]
         
         return {
-            'input_ids': torch.stack(input_ids_list),  # [seq_len, max_length]
-            'attention_mask': torch.stack(attention_mask_list),  # [seq_len, max_length]
-            'valence': torch.tensor(seq['valences'], dtype=torch.float),  # [seq_len]
-            'arousal': torch.tensor(seq['arousals'], dtype=torch.float),  # [seq_len]
-            'user_id': torch.tensor(seq['user_id'], dtype=torch.long)
+            'current_input_ids': current_encoding['input_ids'].squeeze(0),  # [max_length]
+            'current_attention_mask': current_encoding['attention_mask'].squeeze(0),  # [max_length]
+            'history_input_ids': torch.stack(history_input_ids),  # [max_history, max_length]
+            'history_attention_mask': torch.stack(history_attention_mask),  # [max_history, max_length]
+            'valence': torch.tensor(sample['valence'], dtype=torch.float),
+            'arousal': torch.tensor(sample['arousal'], dtype=torch.float),
+            'user_id': torch.tensor(max(0, sample['user_id']), dtype=torch.long),  # Use 0 for unseen
+            'has_user_embed': torch.tensor(sample['has_user_embed'], dtype=torch.bool)
         }
 
 
 # ===== 3. MODEL =====
 
 class EmotionPredictionModel(nn.Module):
-    """BERT + LSTM + User Embeddings + Attention for emotion prediction."""
     
     def __init__(self, num_users, bert_model='bert-base-uncased', lstm_hidden=256, user_embed_dim=64):
         super().__init__()
         
-        # BERT encoder
+        # BERT encoder (shared for current text and history)
         self.bert = AutoModel.from_pretrained(bert_model)
         bert_dim = self.bert.config.hidden_size
         
-        # User embeddings
-        self.user_embedding = nn.Embedding(num_users, user_embed_dim)
+        # User embeddings (optional, for seen users only)
+        self.user_embedding = nn.Embedding(num_users + 1, user_embed_dim)  # +1 for unseen
+        self.user_embed_dim = user_embed_dim
         
-        # LSTM for temporal modeling
-        self.lstm = nn.LSTM(
-            bert_dim + user_embed_dim,
+        # LSTM for processing history
+        self.history_lstm = nn.LSTM(
+            bert_dim,
             lstm_hidden,
             num_layers=2,
             batch_first=True,
-            bidirectional=True,
+            bidirectional=False,
             dropout=0.3
         )
         
-        # Regression heads (applied to each timestep)
+        # Attention mechanism to aggregate history
+        self.attention = nn.Sequential(
+            nn.Linear(bert_dim + lstm_hidden, 128),
+            nn.Tanh(),
+            nn.Linear(128, 1)
+        )
+        
+        # Final prediction layers
+        combined_dim = bert_dim + lstm_hidden + user_embed_dim
+        
         self.valence_head = nn.Sequential(
-            nn.Linear(lstm_hidden * 2, 128),
+            nn.Linear(combined_dim, 256),
             nn.ReLU(),
             nn.Dropout(0.3),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(128, 1)
         )
         
         self.arousal_head = nn.Sequential(
-            nn.Linear(lstm_hidden * 2, 128),
+            nn.Linear(combined_dim, 256),
             nn.ReLU(),
             nn.Dropout(0.3),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(128, 1)
         )
     
-    def forward(self, input_ids, attention_mask, user_id):
-        batch_size, seq_len, max_len = input_ids.shape
+    def forward(self, current_input_ids, current_attention_mask, 
+                history_input_ids, history_attention_mask, 
+                user_id, has_user_embed):
+        batch_size = current_input_ids.shape[0]
         
-        # Encode each text with BERT
-        input_ids = input_ids.view(-1, max_len)
-        attention_mask = attention_mask.view(-1, max_len)
+        # Encode current text with BERT
+        current_bert_out = self.bert(current_input_ids, attention_mask=current_attention_mask)
+        current_embed = current_bert_out.last_hidden_state[:, 0, :]  # [batch, bert_dim]
         
-        bert_outputs = self.bert(input_ids, attention_mask=attention_mask)
-        text_embeds = bert_outputs.last_hidden_state[:, 0, :]  # [CLS] token
-        text_embeds = text_embeds.view(batch_size, seq_len, -1)
+        # Encode history texts with BERT
+        max_history, max_len = history_input_ids.shape[1], history_input_ids.shape[2]
+        history_input_ids = history_input_ids.view(-1, max_len)
+        history_attention_mask = history_attention_mask.view(-1, max_len)
         
-        # Add user embeddings
-        user_embeds = self.user_embedding(user_id).unsqueeze(1).expand(-1, seq_len, -1)
-        combined_embeds = torch.cat([text_embeds, user_embeds], dim=-1)
+        # Check which history entries are valid (not padding)
+        valid_history = history_attention_mask.sum(dim=1) > 0  # [batch*max_history]
         
-        # LSTM temporal modeling
-        lstm_out, _ = self.lstm(combined_embeds)  # [batch, seq_len, lstm_hidden*2]
+        # Encode only valid history
+        if valid_history.any():
+            history_bert_out = self.bert(history_input_ids, attention_mask=history_attention_mask)
+            history_embeds = history_bert_out.last_hidden_state[:, 0, :]  # [batch*max_history, bert_dim]
+            history_embeds = history_embeds.view(batch_size, max_history, -1)  # [batch, max_history, bert_dim]
+            
+            # Process history with LSTM
+            lstm_out, (hidden, _) = self.history_lstm(history_embeds)  # lstm_out: [batch, max_history, lstm_hidden]
+            history_context = hidden[-1]  # Use last hidden state: [batch, lstm_hidden]
+        else:
+            # No valid history, use zero context
+            history_context = torch.zeros(batch_size, self.history_lstm.hidden_size, device=current_embed.device)
         
-        # Predict emotions for EACH timestep
-        valence = self.valence_head(lstm_out).squeeze(-1)  # [batch, seq_len]
-        arousal = self.arousal_head(lstm_out).squeeze(-1)  # [batch, seq_len]
+        # Get user embeddings
+        user_embeds = self.user_embedding(user_id)  # [batch, user_embed_dim]
+        
+        # For unseen users, zero out user embeddings
+        user_embeds = user_embeds * has_user_embed.unsqueeze(1).float()
+        
+        # Combine all features
+        combined = torch.cat([current_embed, history_context, user_embeds], dim=-1)  # [batch, combined_dim]
+        
+        # Predict valence and arousal
+        valence = self.valence_head(combined).squeeze(-1)  # [batch]
+        arousal = self.arousal_head(combined).squeeze(-1)  # [batch]
         
         return valence, arousal
 
@@ -197,21 +282,29 @@ def train_epoch(model, dataloader, optimizer, criterion):
     total_loss = 0
     
     for batch in tqdm(dataloader, desc='Training'):
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
+        current_input_ids = batch['current_input_ids'].to(device)
+        current_attention_mask = batch['current_attention_mask'].to(device)
+        history_input_ids = batch['history_input_ids'].to(device)
+        history_attention_mask = batch['history_attention_mask'].to(device)
         user_id = batch['user_id'].to(device)
-        valence_target = batch['valence'].to(device)  # [batch, seq_len]
-        arousal_target = batch['arousal'].to(device)  # [batch, seq_len]
+        has_user_embed = batch['has_user_embed'].to(device)
+        valence_target = batch['valence'].to(device)  # [batch]
+        arousal_target = batch['arousal'].to(device)  # [batch]
         
         optimizer.zero_grad()
         
-        valence_pred, arousal_pred = model(input_ids, attention_mask, user_id)
+        valence_pred, arousal_pred = model(
+            current_input_ids, current_attention_mask,
+            history_input_ids, history_attention_mask,
+            user_id, has_user_embed
+        )
         
         loss_v = criterion(valence_pred, valence_target)
         loss_a = criterion(arousal_pred, arousal_target)
         loss = loss_v + loss_a
         
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
         
         total_loss += loss.item()
@@ -228,13 +321,20 @@ def evaluate(model, dataloader, criterion):
     
     with torch.no_grad():
         for batch in tqdm(dataloader, desc='Evaluating'):
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
+            current_input_ids = batch['current_input_ids'].to(device)
+            current_attention_mask = batch['current_attention_mask'].to(device)
+            history_input_ids = batch['history_input_ids'].to(device)
+            history_attention_mask = batch['history_attention_mask'].to(device)
             user_id = batch['user_id'].to(device)
-            valence_target = batch['valence'].to(device)  # [batch, seq_len]
-            arousal_target = batch['arousal'].to(device)  # [batch, seq_len]
+            has_user_embed = batch['has_user_embed'].to(device)
+            valence_target = batch['valence'].to(device)  # [batch]
+            arousal_target = batch['arousal'].to(device)  # [batch]
             
-            valence_pred, arousal_pred = model(input_ids, attention_mask, user_id)
+            valence_pred, arousal_pred = model(
+                current_input_ids, current_attention_mask,
+                history_input_ids, history_attention_mask,
+                user_id, has_user_embed
+            )
             
             loss_v = criterion(valence_pred, valence_target)
             loss_a = criterion(arousal_pred, arousal_target)
@@ -242,11 +342,10 @@ def evaluate(model, dataloader, criterion):
             
             total_loss += loss.item()
             
-            # Flatten sequences for correlation calculation
-            all_valence_pred.extend(valence_pred.cpu().numpy().flatten())
-            all_arousal_pred.extend(arousal_pred.cpu().numpy().flatten())
-            all_valence_true.extend(valence_target.cpu().numpy().flatten())
-            all_arousal_true.extend(arousal_target.cpu().numpy().flatten())
+            all_valence_pred.extend(valence_pred.cpu().numpy())
+            all_arousal_pred.extend(arousal_pred.cpu().numpy())
+            all_valence_true.extend(valence_target.cpu().numpy())
+            all_arousal_true.extend(arousal_target.cpu().numpy())
     
     # Calculate Pearson correlation
     valence_corr = np.corrcoef(all_valence_true, all_valence_pred)[0, 1]
@@ -267,22 +366,36 @@ def main():
     logger.info(f"Loaded {len(df)} samples from {df['user_id'].nunique()} users")
     
     # Split data
-    logger.info("Splitting data temporally per user...")
-    train_df, val_df, test_df = temporal_split_by_user(df)
-    logger.info(f"Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)}")
+    logger.info("Splitting data temporally per user + creating unseen users...")
+    train_df, val_df, test_df = temporal_split_by_user(df, train_ratio=0.7, val_ratio=0.15, test_user_ratio=0.2)
+    logger.info(f"Train: {len(train_df)} samples from {train_df['user_id'].nunique()} users")
+    logger.info(f"Val: {len(val_df)} samples from {val_df['user_id'].nunique()} users")
+    logger.info(f"Test: {len(test_df)} samples from {test_df['user_id'].nunique()} users")
+    
+    # Count seen/unseen in test
+    train_users = set(train_df['user_id'].unique())
+    test_users = set(test_df['user_id'].unique())
+    seen_users = test_users & train_users
+    unseen_users = test_users - train_users
+    logger.info(f"Test set: {len(seen_users)} seen users, {len(unseen_users)} unseen users")
     
     # Initialize tokenizer
     tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
     
-    # Create datasets
-    logger.info("Creating datasets...")
-    train_dataset = EmotionDataset(train_df, tokenizer, seq_length=5)
-    val_dataset = EmotionDataset(val_df, tokenizer, seq_length=5)
-    test_dataset = EmotionDataset(test_df, tokenizer, seq_length=5)
+    # Create user mapping from training data only
+    train_users = train_df['user_id'].unique()
+    user_to_idx = {uid: idx for idx, uid in enumerate(train_users)}
+    logger.info(f"Training with {len(user_to_idx)} users")
     
-    logger.info(f"Train sequences: {len(train_dataset)}")
-    logger.info(f"Val sequences: {len(val_dataset)}")
-    logger.info(f"Test sequences: {len(test_dataset)}")
+    # Create datasets (val and test may have unseen users)
+    logger.info("Creating datasets...")
+    train_dataset = EmotionDataset(train_df, tokenizer, user_to_idx=user_to_idx, max_history=10)
+    val_dataset = EmotionDataset(val_df, tokenizer, user_to_idx=user_to_idx, max_history=10)
+    test_dataset = EmotionDataset(test_df, tokenizer, user_to_idx=user_to_idx, max_history=10)
+    
+    logger.info(f"Train samples: {len(train_dataset)}")
+    logger.info(f"Val samples: {len(val_dataset)}")
+    logger.info(f"Test samples: {len(test_dataset)}")
     
     # Create dataloaders
     train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
@@ -290,9 +403,17 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
     
     # Initialize model
-    num_users = df['user_id'].nunique()
+    num_users = len(user_to_idx)
     logger.info(f"Initializing model with {num_users} users...")
     model = EmotionPredictionModel(num_users=num_users).to(device)
+    
+    # Save user mapping for evaluation
+    import json
+    user_mapping_path = project_root / 'models' / 'user_mapping.json'
+    user_mapping_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(user_mapping_path, 'w') as f:
+        json.dump(user_to_idx, f)
+    logger.info(f"Saved user mapping to {user_mapping_path}")
     
     # Training setup
     criterion = nn.MSELoss()

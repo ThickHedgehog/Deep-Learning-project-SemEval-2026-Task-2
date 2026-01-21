@@ -1,9 +1,4 @@
-﻿"""
-Simple Subtask 1 Data Preparation Script
-Prepares dataset for Subtask 1: Longitudinal Affect Assessment
-"""
-
-import pandas as pd
+﻿import pandas as pd
 import re
 from pathlib import Path
 import logging
